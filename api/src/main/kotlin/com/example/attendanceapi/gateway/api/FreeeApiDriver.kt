@@ -58,27 +58,24 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
     }
 
 
-    fun putAttendanceRecords(input: FreeeAttendanceInput): Int {
+    fun putAttendanceRecords(input: FreeeAttendanceInput): String {
         // Define the API endpoint URL
         val apiUrl = "https://api.freee.co.jp/hr/api/v1/employees/${input.employeeId}/work_records/${input.date}"
 
         // Define the request payload (data) as a JSON string
         val requestData = """
             {
-                "company_id": ${input.company_id},
+                "company_id": ${input.companyId},
                 "break_records": [
                     {
-                        "clock_in_at": "${input.break_records.clock_in_at}",
-                        "clock_out_at": "${input.break_records.clock_out_at}"
+                        "clock_in_at": "${input.breakRecords.clockInAt}",
+                        "clock_out_at": "${input.breakRecords.clockOutAt}"
                     }
                 ],
-                "clock_in_at": "${input.clock_in_at}",
-                "clock_out_at": "${input.clock_out_at}"
+                "clock_in_at": "${input.clockInAt}",
+                "clock_out_at": "${input.clockOutAt}"
             }
         """.trimIndent()
-
-        // Set the authorization token
-        val authorizationToken = "Bearer ${input.authenticationCode}"
 
         try {
             // Create a URL object
@@ -128,11 +125,11 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
 
             // Close the connection
             connection.disconnect()
-            return responseCode
+            return requestData + responseCode.toString()
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        return 0
+        return ""
     }
 
 }
@@ -165,26 +162,14 @@ data class FreeeAttendanceInput(
     val authenticationCode: String,
     val employeeId: Int,
     val date: String,
-    val company_id: Int,
-    val break_records: BreakRecords,
-    val clock_in_at: String,
-    val clock_out_at: String,
-    val day_pattern: String,
-    val early_leaving_mins: Int,
-    val is_absence: Boolean = false,
-    val lateness_mins: Int = 0,
-    val normal_work_clock_in_at: String,
-    val normal_work_clock_out_at: String,
-    val normal_work_mins: Int = 0,
-    val normal_work_mins_by_paid_holiday: Int = 0,
-    val note: String = "",
-    val paid_holiday: Int = 0,
-    val use_attendance_deduction: Boolean = true,
-    val use_default_work_pattern: Boolean = true
+    val companyId: Int,
+    val breakRecords: BreakRecords,
+    val clockInAt: String,
+    val clockOutAt: String,
 )
 
 @Serializable
 data class BreakRecords(
-    val clock_in_at: String,
-    val clock_out_at: String,
+    val clockInAt: String,
+    val clockOutAt: String,
 )

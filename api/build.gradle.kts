@@ -1,7 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
-
 val dbHost = System.getenv("DB_MASTER_HOST") ?: "localhost"
 val dbPort = System.getenv("DB_MASTER_PORT") ?: "15432"
 val dbUser = System.getenv("DB_USER") ?: "root"
@@ -55,8 +54,6 @@ jooq {
         }
     }
 }
-
-
 
 plugins {
     id("org.springframework.boot") version "3.1.4"
@@ -168,17 +165,17 @@ task<GenerateTask>("generateApiServer") {
     apiPackage.set("com.example.attendance_api.openapi.generated.controller") // 各自のアプリケーションに合わせてパス名を変更する
     modelPackage.set("com.example.attendance_api.openapi.generated.model") // 各自のアプリケーションに合わせてパス名を変更する
     configOptions.set(
-            mapOf(
-                    "interfaceOnly" to "true",
-            )
+        mapOf(
+            "interfaceOnly" to "true",
+        )
     )
     /**
      * true にすると tags 準拠で、API の interface を生成する
      */
     additionalProperties.set(
-            mapOf(
-                    "useTags" to "true"
-            )
+        mapOf(
+            "useTags" to "true"
+        )
     )
 }
 

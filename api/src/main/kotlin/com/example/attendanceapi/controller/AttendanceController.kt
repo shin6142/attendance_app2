@@ -24,7 +24,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
         @Parameter(
             description = "target attendance employee's id",
             required = true
-        ) @PathVariable(value = "employee_id") employeeId: Int,
+        ) @PathVariable(value = "employee_id") employeeId: String,
         @Parameter(
             description = "target attendance year",
             required = true
@@ -58,16 +58,16 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
         @Parameter(
             description = "target attendance employee's id",
             required = true
-        ) @PathVariable("employee_id") employeeId: kotlin.Int,
+        ) @PathVariable(value = "employee_id") employeeId: String,
         @Parameter(
             description = "target attendance year",
             required = true
-        ) @PathVariable("year") year: kotlin.String,
+        ) @PathVariable(value = "year") year: String,
         @Parameter(
             description = "target attendance year",
             required = true
-        ) @PathVariable("month") month: kotlin.String
-    ): ResponseEntity<kotlin.String> =
+        ) @PathVariable(value = "month") month: String
+    ): ResponseEntity<String> =
         useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
             { ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
@@ -105,15 +105,15 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
         @Parameter(
             description = "target attendance employee's id",
             required = true
-        ) @PathVariable("employee_id") employeeId: kotlin.Int,
+        ) @PathVariable(value = "employee_id") employeeId: String,
         @Parameter(
             description = "target attendance year",
             required = true
-        ) @PathVariable("year") year: kotlin.String,
+        ) @PathVariable(value = "year") year: String,
         @Parameter(
             description = "target attendance year",
             required = true
-        ) @PathVariable("month") month: kotlin.String,
+        ) @PathVariable(value = "month") month: String
     ): ResponseEntity<String> =
         useCase.getMonthlyByEmployeeId(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
             { ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR) },
@@ -148,6 +148,50 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             }
         )
 
+    override fun recordMonthlyAttendances(
+        @Parameter(
+            description = "target attendance employee's id",
+            required = true
+        ) @PathVariable("employee_id") employeeId: kotlin.Int,
+        @Parameter(
+            description = "target attendance year",
+            required = true
+        ) @PathVariable("year") year: kotlin.String,
+        @Parameter(
+            description = "target attendance year",
+            required = true
+        ) @PathVariable("month") month: kotlin.String,
+        @Parameter(
+            description = "",
+            required = true
+        ) @Valid @RequestBody dailyAttendances: kotlin.collections.List<DailyAttendances>
+    ): ResponseEntity<kotlin.String> {
+        //FreeeAttendanceInputに変換
+        val authenticationCode = ""
+        val companyId = 1884310
+        val input = dailyAttendances.map { it.toFreeeAttendanceInput(authenticationCode, companyId, employeeId) }
+        return ResponseEntity(input.toString(), HttpStatus.CREATED)
+    }
+
+    fun DailyAttendances.toFreeeAttendanceInput(
+        authenticationCode: String,
+        companyId: Int,
+        employeeId: Int
+    ): FreeeAttendanceInput =
+        FreeeAttendanceInput(
+            authenticationCode = authenticationCode,
+            employeeId = employeeId,
+            date = this.date,
+            companyId = companyId,
+            breakRecords = BreakRecords(
+                this.attendances.find { it -> it.kind == "LEAVE" }?.datetime ?: "",
+                this.attendances.find { it -> it.kind == "BACK" }?.datetime ?: "",
+            ),
+            clockInAt = this.attendances.find { it -> it.kind == "START" }?.datetime ?: "",
+            clockOutAt = this.attendances.find { it -> it.kind == "END" }?.datetime ?: ""
+        )
+
+
     override fun uploadMonthlyByEmployeeId(
         @Parameter(
             description = "target attendance employee's id",
@@ -174,25 +218,13 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
                 authenticationCode = body.split("\n").map { it.split(",") }.first().get(1),
                 employeeId = employeeId,
                 date = key,
-                company_id = 1884310,
-                break_records = BreakRecords(
+                companyId = 1884310,
+                breakRecords = BreakRecords(
                     value.find { it.contains("LEAVE") }?.get(3) ?: "",
                     value.find { it.contains("BACK") }?.get(3) ?: "",
                 ),
-                clock_in_at = value.find { it.contains("START") }?.get(3) ?: "",
-                clock_out_at = value.find { it.contains("END") }?.get(3) ?: "",
-                day_pattern = "",
-                early_leaving_mins = 0,
-                is_absence = false,
-                lateness_mins = 0,
-                normal_work_clock_in_at = value.find { it.contains("START") }?.get(3) ?: "",
-                normal_work_clock_out_at = value.find { it.contains("END") }?.get(3) ?: "",
-                normal_work_mins = 0,
-                normal_work_mins_by_paid_holiday = 0,
-                note = "",
-                paid_holiday = 0,
-                use_attendance_deduction = true,
-                use_default_work_pattern = true
+                clockInAt = value.find { it.contains("START") }?.get(3) ?: "",
+                clockOutAt = value.find { it.contains("END") }?.get(3) ?: ""
             )
         }
 

@@ -6,14 +6,14 @@ import java.util.*
 
 class Attendance(
     val attendanceId: UUID,
-    val employeeId: Int,
+    val employeeId: String,
     val dateTime: LocalDateTime,
     val context: String,
     val kind: AttendanceKind
 ) {
     companion object {
         fun create(
-            employeeId: Int,
+            employeeId: String,
             dateTime: LocalDateTime,
             context: String,
             kind: AttendanceKind
@@ -33,7 +33,7 @@ class Attendance(
 }
 
 class Attendances(val list: List<Attendance>) {
-    fun filterByDate(date: LocalDate): Attendances =
+    private fun filterByDate(date: LocalDate): Attendances =
         Attendances(list.filter { it.onDate(date) })
 
     fun filterByDateAndKind(date: LocalDate, kind: AttendanceKind): Attendance? =

@@ -65,9 +65,9 @@ paths:
           in: path
           description: target attendance employee's id
           required: true
-          example: 1
+          example: U02FFCC308G
           schema:
-            type: integer
+            type: string
         - name: year
           in: path
           description: target attendance year
@@ -89,6 +89,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/attendances'
+  /attendances/{employee_id}/{year}/{month}/record:
+    post:
+      tags:
+        - Attendance
+      operationId: record monthly attendances
+      summary: record monthly by employee id
+      parameters:
+        - name: employee_id
+          in: path
+          description: target attendance employee's id
+          required: true
+          example: 1
+          schema:
+            type: integer
+        - name: year
+          in: path
+          description: target attendance year
+          required: true
+          example: 2023
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: target attendance year
+          required: true
+          example: 09
+          schema:
+            type: string
+      responses:
+        "201":
+          description: "created"
+          content:
+            application/json:
+              schema:
+                type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/dailyAttendances'
+        required: true
   /message/{employee_id}/{year}/{month}/download:
     get:
       tags:
@@ -100,9 +143,9 @@ paths:
           in: path
           description: target attendance employee's id
           required: true
-          example: 1
+          example: U02FFCC308G
           schema:
-            type: integer
+            type: string
         - name: year
           in: path
           description: target attendance year
@@ -144,9 +187,9 @@ paths:
           in: path
           description: target attendance employee's id
           required: true
-          example: 1
+          example: U02FFCC308G
           schema:
-            type: integer
+            type: string
         - name: year
           in: path
           description: target attendance year
@@ -275,8 +318,8 @@ components:
       type: object
       properties:
         employee_id:
-          type: integer
-          example: 1
+          type: string
+          example: U02FFCC308G
         employee_name:
           type: string
           example: Ben White
@@ -301,7 +344,7 @@ components:
       properties:
         date:
           type: string
-          example: 20230901
+          example: "2023-09-01"
         attendances:
           description: attendance array
           type: array

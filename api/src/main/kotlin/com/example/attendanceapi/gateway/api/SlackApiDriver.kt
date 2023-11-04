@@ -15,14 +15,14 @@ import java.nio.charset.StandardCharsets
 
 @Component
 class SlackApiDriver(@Autowired private val env: Environment) {
-    fun fetchMessages(employeeId: Int, year: String, month: String): Either<SlackApiError, SlackApiResponse> = either {
+    fun fetchMessages(employeeId: String, year: String, month: String): Either<SlackApiError, SlackApiResponse> = either {
         val token = env.getProperty("slack.token")
         val authToken = "Bearer $token"
-        val userId = env.getProperty("slack.userId")
+        val userId = "@${employeeId}"
         val before = "${year}-${month}-31"
         val after = "${year}-${month}-01"
         val query = URLEncoder.encode(
-            "from:<$userId> in:grp-dev-勤怠 before:$before after:$after",
+            "from:<$userId> in:grp-dev-勤怠 before:$before after:$after on:$before on:$after",
             StandardCharsets.UTF_8.toString()
         )
         val count = "100"

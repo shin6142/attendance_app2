@@ -47,8 +47,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                         pair.first.toString(),
                         pair.second.map { kind ->
                             val targetAttendance = attendances.filterByDateAndKind(pair.first, kind)
-                            val timeStamp =
-                                targetAttendance?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
                             AttendanceOutput(
                                 input.employeeId,
                                 "従業員名",
@@ -68,9 +66,9 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                 }.let { AttendancesOutput(it) }.right()
             }
 
-    data class AttendancesInput(val employeeId: Int, val year: String, val month: String)
+    data class AttendancesInput(val employeeId: String, val year: String, val month: String)
     data class AttendanceOutput(
-        val employeeId: Int,
+        val employeeId: String,
         val employeeName: String,
         val datetime: String,
         val context: String,

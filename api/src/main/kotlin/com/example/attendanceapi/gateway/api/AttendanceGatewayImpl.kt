@@ -16,7 +16,7 @@ import java.time.ZoneId
 @Component
 class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver) : AttendanceGateway {
     override fun retrieveAttendances(
-        employeeId: Int,
+        employeeId: String,
         year: String,
         month: String
     ): Either<RetrieveAttendancesErrorImpl, Attendances> =
