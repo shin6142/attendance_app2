@@ -1,0 +1,345 @@
+openapi: "3.0.3"
+
+info:
+  title: "Attendance API"
+  version: "1.0.0"
+
+servers:
+  - url: http://{host}:{port}/
+    description: development
+    variables:
+      host:
+        default: localhost
+      port:
+        default: '8080'
+
+paths:
+  /employee/{id}:
+    get:
+      tags:
+        - Employee
+      operationId: get
+      summary: get employee by id
+      parameters:
+        - name: id
+          in: path
+          description: target employee's id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/employee'
+  /employee:
+    post:
+      operationId: create
+      tags:
+        - Employee
+      summary: create employee
+      description: create employee, id is auto generated
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/employee'
+        required: true
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/employee'
+  /attendances/{employee_id}/{year}/{month}:
+    get:
+      tags:
+        - Attendance
+      operationId: get monthly by employee id
+      summary: get monthly by employee id
+      parameters:
+        - name: employee_id
+          in: path
+          description: target attendance employee's id
+          required: true
+          example: 1
+          schema:
+            type: integer
+        - name: year
+          in: path
+          description: target attendance year
+          required: true
+          example: 2023
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: target attendance year
+          required: true
+          example: 09
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/attendances'
+  /message/{employee_id}/{year}/{month}/download:
+    get:
+      tags:
+        - Attendance
+      operationId: output messages monthly by employee id
+      summary: output messages monthly by employee id
+      parameters:
+        - name: employee_id
+          in: path
+          description: target attendance employee's id
+          required: true
+          example: 1
+          schema:
+            type: integer
+        - name: year
+          in: path
+          description: target attendance year
+          required: true
+          example: 2023
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: target attendance year
+          required: true
+          example: 09
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "ok"
+          content:
+            text/csv:
+              schema:
+                type: string
+              example: |
+                勤務日,従業員ID,従業員名,打刻時間,打刻種別
+                20231020,1,山家紳,2023-10-20 09:00:00,START
+          headers:
+            Content-Disposition:
+              description: Specifies the filename for the downloaded CSV
+              schema:
+                type: string
+                example: attachment; filename=attendances.csv
+  /attendances/{employee_id}/{year}/{month}/download:
+    get:
+      tags:
+        - Attendance
+      operationId: download monthly by employee id
+      summary: download monthly by employee id
+      parameters:
+        - name: employee_id
+          in: path
+          description: target attendance employee's id
+          required: true
+          example: 1
+          schema:
+            type: integer
+        - name: year
+          in: path
+          description: target attendance year
+          required: true
+          example: 2023
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: target attendance year
+          required: true
+          example: 09
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "ok"
+          content:
+            text/csv:
+              schema:
+                type: string
+              example: |
+                勤務日,従業員ID,従業員名,打刻時間,打刻種別
+                20231020,1,山家紳,2023-10-20 09:00:00,START
+          headers:
+            Content-Disposition:
+              description: Specifies the filename for the downloaded CSV
+              schema:
+                type: string
+                example: attachment; filename=attendances.csv
+  /attendances/{employee_id}/{year}/{month}/upload:
+    post:
+      tags:
+        - Attendance
+      operationId: upload monthly by employee id
+      summary: upload monthly by employee id
+      parameters:
+        - name: employee_id
+          in: path
+          description: target attendance employee's id
+          required: true
+          example: 1
+          schema:
+            type: integer
+        - name: year
+          in: path
+          description: target attendance year
+          required: true
+          example: 2023
+          schema:
+            type: string
+        - name: month
+          in: path
+          description: target attendance year
+          required: true
+          example: 09
+          schema:
+            type: string
+      responses:
+        "201":
+          description: "created"
+          content:
+            application/json:
+              schema:
+                type: string
+      requestBody:
+        content:
+          text/csv:
+            schema:
+              type: string
+            example: |
+              勤務日,従業員ID,従業員名,打刻時間,打刻種別, メッセージ
+              20231020,1,山家紳,2023-10-20 09:00:00,START,:si:
+        required: true
+  /freee/authenticate/callback:
+    get:
+      tags:
+        - freee
+      operationId: get freee authentication code
+      parameters:
+        - name: code
+          in: query
+          description: freee api authentication code
+          required: true
+          example: d88a8f711ff0fca69f7df9115ceb5a780dee17e7d24a18554727e93e3f7532e5
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreeeAuthenticationCode'
+components:
+  schemas:
+    employee:
+      description: employee response
+      type: object
+      properties:
+        id:
+          description: employee id
+          example: 1
+          type: integer
+        name:
+          description: employee name
+          example: Ben White
+          type: string
+          maxLength: 100
+      required:
+        - id
+        - name
+    attendances:
+      description: bulk of daily attendance
+      type: object
+      properties:
+        attendances:
+          description: attendance array
+          type: array
+          items:
+            $ref: '#/components/schemas/dailyAttendances'
+      required:
+        - attendances
+    attendance:
+      description: bulk of attendance
+      type: object
+      properties:
+        employee_id:
+          type: integer
+          example: 1
+        employee_name:
+          type: string
+          example: Ben White
+        datetime:
+          type: string
+          example: 2013-02-01T12:52:34
+        context:
+          type: string
+          example: 開始します
+        kind:
+          type: string
+          example: START
+      required:
+        - employee_id
+        - employee_name
+        - datetime
+        - context
+        - kind
+    dailyAttendances:
+      description: attendances on a day
+      type: object
+      properties:
+        date:
+          type: string
+          example: 20230901
+        attendances:
+          description: attendance array
+          type: array
+          items:
+            $ref: '#/components/schemas/attendance'
+      required:
+        - date
+        - attendances
+    FreeeAuthenticationCode:
+      description: FreeeAuthenticationCode
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: 9574c05caefe56fe53d7fc022547861e6be4bab31898bb8b4a9fa719440d8b0b
+        token_type:
+          type: string
+          example: bearer
+        expires_in:
+          type: integer
+          example: 21600
+        refresh_token:
+          type: string
+          example: 360baaa609740303b5e12ed479ad286755e42f5add2e818e1d42fc74860a2f2b
+        scope:
+          type: string
+          example: default_read hr:employees:read hr:time_clocks:read hr:time_clocks:write hr:work_records:read hr:work_records:write
+        created_at:
+          type: integer
+          example: 1697950564
+        company_id:
+          type: integer
+          example: 1884310
+      required:
+        - access_token
+        - token_type
+        - expires_in
+        - refresh_token
+        - scope
+        - created_at
+        - company_id
