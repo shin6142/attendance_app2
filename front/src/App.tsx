@@ -1,5 +1,5 @@
 import './App.css'
-import {List} from "./components/List";
+import {Table} from "./components/List";
 import {QueryClient, QueryClientProvider} from "react-query";
 
 const queryClient = new QueryClient()
@@ -16,6 +16,7 @@ const App = () => {
     return (
         <div className="App">
             <QueryClientProvider client={queryClient}>
+                <Table/>
                 <div>
                     <button type={"button"} onClick={() => downloadAttendancesCsv("U02FFCC308G", "2023", "10")}>
                         アップロード用CSVダウンロード
@@ -24,7 +25,6 @@ const App = () => {
                         SLACK勤怠報告履歴CSVダウンロード
                     </button>
                 </div>
-                <List/>
             </QueryClientProvider>
 
         </div>
