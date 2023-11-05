@@ -167,10 +167,16 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
         ) @Valid @RequestBody dailyAttendances: kotlin.collections.List<DailyAttendances>
     ): ResponseEntity<kotlin.String> {
         //FreeeAttendanceInputに変換
-        val authenticationCode = ""
+        val authenticationCode = "c9f007ef1a20ccdc61f9b7a491090c0c21fcb44545fea0217d5d7ef394d47707"
         val companyId = 1884310
         val input = dailyAttendances.map { it.toFreeeAttendanceInput(authenticationCode, companyId, employeeId) }
-        return ResponseEntity(input.toString(), HttpStatus.CREATED)
+
+        val responses = input.map { freeeApiDriver.putAttendanceRecords(it) }
+
+        return ResponseEntity(
+            responses.toString(),
+            HttpStatus.CREATED
+        )
     }
 
     fun DailyAttendances.toFreeeAttendanceInput(

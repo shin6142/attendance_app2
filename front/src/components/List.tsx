@@ -65,8 +65,7 @@ export const Table = () => {
             </table>
             <button onClick={() => {
                 postAttendances(postData)
-            }}>テーブルの値取得
-            </button>
+            }}>Freeeに登録</button>
             <button onClick={() => {
                 console.log(postData)
             }}>attendances
@@ -128,8 +127,7 @@ const fetchAttendances = async (employeeId: string, year: string, month: string)
 }
 
 const postAttendances = async (attendances: DailyAttendance[]): Promise<[]> => {
-    const {data} = await instance.post<[], AxiosResponse<[]>>('/attendances/1/2023/11/record', attendances)
-    console.log(data)
+    const {data} = await instance.post<[], AxiosResponse<[]>>('/attendances/1164735/2023/11/record', attendances)
     return data
 }
 
