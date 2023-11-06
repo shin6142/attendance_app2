@@ -171,7 +171,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
         val companyId = 1884310
         val input = dailyAttendances.map { it.toFreeeAttendanceInput(authenticationCode, companyId, employeeId) }
 
-        val responses = input.map { freeeApiDriver.putAttendanceRecords(it) }
+        val responses = input.map { it -> freeeApiDriver.putAttendanceRecords(it).fold({it.message}, {it}) }
 
         return ResponseEntity(
             responses.toString(),

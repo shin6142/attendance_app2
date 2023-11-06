@@ -12,8 +12,6 @@ import okhttp3.RequestBody
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -58,29 +56,28 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
     }
 
 
-    fun putAttendanceRecords(input: FreeeAttendanceInput): String {
-        // Define the API endpoint URL
-        val apiUrl = "https://api.freee.co.jp/hr/api/v1/employees/${input.employeeId}/work_records/${input.date}"
-
-        // Define the request payload (data) as a JSON string
-        val requestData = """
-            {
-                "company_id": ${input.companyId},
-                "break_records": [
-                    {
-                        "clock_in_at": "${input.breakRecords.clockInAt}",
-                        "clock_out_at": "${input.breakRecords.clockOutAt}"
-                    }
-                ],
-                "clock_in_at": "${input.clockInAt}",
-                "clock_out_at": "${input.clockOutAt}"
-            }
-        """.trimIndent()
-
+    fun putAttendanceRecords(input: FreeeAttendanceInput): Either<FreeeReisterAttendanceError, String> {
         try {
+            // Define the API endpoint URL
+            val apiUrl = "https://api.freee.co.jp/hr/api/v1/employees/${input.employeeId}/work_records/${input.date}"
+
+            // Define the request payload (data) as a JSON string
+            val requestData = """
+                {
+                    "company_id": ${input.companyId},
+                    "break_records": [
+                        {
+                            "clock_in_at": "${input.breakRecords.clockInAt}",
+                            "clock_out_at": "${input.breakRecords.clockOutAt}"
+                        }
+                    ],
+                    "clock_in_at": "${input.clockInAt}",
+                    "clock_out_at": "${input.clockOutAt}"
+                }
+            """.trimIndent()
+
             // Create a URL object
             val url = URL(apiUrl)
-
             // Open a connection to the URL
             val connection = url.openConnection() as HttpURLConnection
 
@@ -105,33 +102,14 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
 
             // Get the response code
             val responseCode = connection.responseCode
-            println("Response Code: $responseCode")
-
-            // Read the response from the server
-            if (responseCode == 200 || responseCode == 201) {
-                val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                var line: String?
-                val response = StringBuilder()
-
-                while (reader.readLine().also { line = it } != null) {
-                    response.append(line)
-                }
-
-                reader.close()
-                println("Response Data: $response")
-            } else {
-                println("Request failed with response code: $responseCode")
-            }
 
             // Close the connection
             connection.disconnect()
-            return requestData + responseCode.toString()
+            return ("date: ${input.date}, result: $responseCode").right()
         } catch (e: Exception) {
-            e.printStackTrace()
+            return FreeeReisterAttendanceError(e.message ?: "Freee打刻登録に失敗しました").left()
         }
-        return ""
     }
-
 }
 
 @Serializable
@@ -155,7 +133,7 @@ data class FreeeRegisterAttendancesResponse(
 
 data class FreeeAuthenticationError(val statusCode: Int, val message: String)
 
-data class FreeeReisterAttendanceError(val statusCode: Int, val message: String)
+data class FreeeReisterAttendanceError(val message: String)
 
 
 data class FreeeAttendanceInput(
