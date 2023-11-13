@@ -7,7 +7,7 @@ export const RegisterAttendancesButton = (props: RegisterAttendancesButtonProps)
     return (
         <button onClick={()=>{ if(value !== "送信中です"){
             setValue("送信中です")
-            postAttendances(props.postData, props.employeeId, props.year, props.month).then( _  =>
+            postAttendances(props.postData, props.employeeId, props.year, props.month, props.token).then( _  =>
                 setValue("成功しました")
             ).catch( _ =>
                 setValue("失敗しました")
@@ -21,4 +21,5 @@ type RegisterAttendancesButtonProps = {
     employeeId: string
     year: string
     month: string
+    token: string | null
 }

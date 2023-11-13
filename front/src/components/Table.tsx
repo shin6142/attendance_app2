@@ -2,12 +2,13 @@ import "./scss/list.scss"
 import {useEffect, useState} from "react";
 import {TableRow} from "./TableRow.tsx";
 import {Attendances, DailyAttendance} from "../types";
-import {fetchAttendances} from "../query";
+import {authenticate, fetchAttendances, getTokenFromQueryParameter} from "../query";
 import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
 
 
 export const Table = () => {
     const [employeeId, setEmployeeId] = useState("U02FFCC308G")
+    const [freeeEmployeeId, _] = useState("1164735")
     const [year, setYear] = useState(new Date().getFullYear().toString())
     const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
     const [attendances, setAttendances] = useState<Attendances>()
@@ -30,6 +31,7 @@ export const Table = () => {
 
     return (
         <div>
+            <button onClick={authenticate}>認証</button>
             <input type={"text"} value={employeeId} onChange={(event) => {
                 setEmployeeId(event.target.value)
             }}/>
@@ -39,7 +41,8 @@ export const Table = () => {
             <input type={"number"} value={month} onChange={(event) => {
                 setMonth(event.target.value)
             }}/>
-            <button onClick={updateAttendances}>テーブルを表示</button>
+            <button onClick={updateAttendances}>更新</button>
+            <RegisterAttendancesButton postData={postData} employeeId={freeeEmployeeId} year={year} month={month} token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
             <table className="table" id={"attendances_table"}>
                 <thead>
                 <tr>
@@ -66,7 +69,6 @@ export const Table = () => {
                 )}
                 </tbody>
             </table>
-            <RegisterAttendancesButton postData={postData} employeeId={employeeId} year={year} month={month}></RegisterAttendancesButton>
         </div>
     )
 }

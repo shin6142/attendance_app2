@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.net.URI
 import javax.validation.Valid
 import javax.validation.constraints.NotNull
 
@@ -18,34 +19,23 @@ class FreeeApiController(val freeeApiDriver: FreeeApiDriver) : FreeeApi {
             description = "freee api authentication code",
             required = true
         ) @Valid @RequestParam(value = "code", required = true) code: String
-    ): ResponseEntity<FreeeAuthenticationCode> =
+    ): ResponseEntity<Unit> {
         freeeApiDriver.getToken(code).fold(
-            {
-                ResponseEntity(
-                    FreeeAuthenticationCode(
-                        "",
-                        "",
-                        0,
-                        "",
-                        "",
-                        0,
-                        0
-                    ), HttpStatus.INTERNAL_SERVER_ERROR
-                )
-            },
+            { return ResponseEntity(HttpStatus.UNAUTHORIZED) },
             { tokens ->
-                ResponseEntity(
-                    FreeeAuthenticationCode(
-                        tokens.access_token,
-                        tokens.token_type,
-                        tokens.expires_in,
-                        tokens.refresh_token,
-                        tokens.scope,
-                        tokens.created_at,
-                        tokens.company_id
-                    ), HttpStatus.CREATED
+                FreeeAuthenticationCode(
+                    tokens.access_token,
+                    tokens.token_type,
+                    tokens.expires_in,
+                    tokens.refresh_token,
+                    tokens.scope,
+                    tokens.created_at,
+                    tokens.company_id
                 )
+                return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create("http://localhost:5173?token=${tokens.access_token}"))
+                    .build()
             }
         )
-
+    }
 }

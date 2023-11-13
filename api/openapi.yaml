@@ -96,6 +96,12 @@ paths:
       operationId: record monthly attendances
       summary: record monthly by employee id
       parameters:
+        - name: code
+          in: header
+          required: true
+          schema:
+            type: string
+            example: 9574c05caefe56fe53d7fc022547861e6be4bab31898bb8b4a9fa719440d8b0b
         - name: employee_id
           in: path
           description: target attendance employee's id
@@ -278,12 +284,14 @@ paths:
           schema:
             type: string
       responses:
-        "200":
-          description: "ok"
-          content:
-            application/json:
+        "302":
+          description: Some token has expired... Clients should follow the `Location` header to refresh the token.
+          headers:
+            Location:
+              description: URI where the client can refresh the expired token.
               schema:
-                $ref: '#/components/schemas/FreeeAuthenticationCode'
+                type: string
+                format: uri # Optional - use if the Location header is an absolute URI, starting with http(s)://
 components:
   schemas:
     employee:
