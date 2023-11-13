@@ -10,10 +10,12 @@ import com.example.attendanceapi.gateway.api.FreeeAttendanceInput
 import com.example.attendanceapi.usecase.AttendanceUseCase
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
@@ -150,6 +152,11 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
 
     override fun recordMonthlyAttendances(
         @Parameter(
+            description = "",
+            `in` = ParameterIn.HEADER,
+            required = true
+        ) @RequestHeader(value = "code", required = true) code: kotlin.String,
+        @Parameter(
             description = "target attendance employee's id",
             required = true
         ) @PathVariable("employee_id") employeeId: kotlin.Int,
@@ -167,11 +174,10 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
         ) @Valid @RequestBody dailyAttendances: kotlin.collections.List<DailyAttendances>
     ): ResponseEntity<kotlin.String> {
         //FreeeAttendanceInputに変換
-        val authenticationCode = "c9f007ef1a20ccdc61f9b7a491090c0c21fcb44545fea0217d5d7ef394d47707"
         val companyId = 1884310
-        val input = dailyAttendances.map { it.toFreeeAttendanceInput(authenticationCode, companyId, employeeId) }
+        val input = dailyAttendances.map { it.toFreeeAttendanceInput(code, companyId, employeeId) }
 
-        val responses = input.map { it -> freeeApiDriver.putAttendanceRecords(it).fold({it.message}, {it}) }
+        val responses = input.map { it -> freeeApiDriver.putAttendanceRecords(it).fold({ it.message }, { it }) }
 
         return ResponseEntity(
             responses.toString(),
@@ -182,7 +188,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
     fun DailyAttendances.toFreeeAttendanceInput(
         authenticationCode: String,
         companyId: Int,
-        employeeId: Int
+        employeeId: Int,
     ): FreeeAttendanceInput =
         FreeeAttendanceInput(
             authenticationCode = authenticationCode,

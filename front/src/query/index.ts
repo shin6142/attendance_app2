@@ -35,3 +35,7 @@ export const getTokenFromQueryParameter = (): string | null => {
     const url = new URL(window.location.href);
     return url.searchParams.get("token")
 }
+
+export const getFreeeEmployeeId = (): string | null => {
+    return ""
+}
