@@ -2,10 +2,13 @@ package com.example.attendanceapi.controller
 
 import com.example.attendance_api.openapi.generated.controller.FreeeApi
 import com.example.attendance_api.openapi.generated.model.FreeeAuthenticationCode
+import com.example.attendance_api.openapi.generated.model.FreeeLoginUser
 import com.example.attendanceapi.gateway.api.FreeeApiDriver
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
@@ -19,23 +22,37 @@ class FreeeApiController(val freeeApiDriver: FreeeApiDriver) : FreeeApi {
             description = "freee api authentication code",
             required = true
         ) @Valid @RequestParam(value = "code", required = true) code: String
-    ): ResponseEntity<Unit> {
+    ): ResponseEntity<Unit> =
         freeeApiDriver.getToken(code).fold(
-            { return ResponseEntity(HttpStatus.UNAUTHORIZED) },
+            { ResponseEntity(HttpStatus.UNAUTHORIZED) },
             { tokens ->
-                FreeeAuthenticationCode(
-                    tokens.access_token,
-                    tokens.token_type,
-                    tokens.expires_in,
-                    tokens.refresh_token,
-                    tokens.scope,
-                    tokens.created_at,
-                    tokens.company_id
-                )
-                return ResponseEntity.status(HttpStatus.FOUND)
+                ResponseEntity.status(HttpStatus.FOUND)
                     .location(URI.create("http://localhost:5173?token=${tokens.access_token}"))
                     .build()
             }
         )
-    }
+
+    override fun getFreeeLoginUser(
+        @Parameter(description = "", `in` = ParameterIn.HEADER, required = true) @RequestHeader(
+            value = "code",
+            required = true
+        ) code: kotlin.String
+    ): ResponseEntity<FreeeLoginUser> =
+        freeeApiDriver.getLoginUser(code).fold(
+            { ResponseEntity(HttpStatus.UNAUTHORIZED) },
+            { user ->
+                return user.companies.find { it.id.toInt() == 1884310 }
+                    ?.let {
+                        ResponseEntity(
+                            FreeeLoginUser(
+                                id = it.employeeId?.toInt() ?: 0,
+                                name = it.displayName ?: "",
+                                companyName = it.name,
+                                companyId = it.id.toInt()
+                            ),
+                            HttpStatus.OK
+                        )
+                    } ?: ResponseEntity(HttpStatus.UNAUTHORIZED)
+            }
+        )
 }

@@ -129,6 +129,11 @@ dependencies {
      * csv
      */
     implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.9.2")
+    /**
+     * open api
+     */
+    runtimeOnly("org.springdoc:springdoc-openapi-kotlin:1.6.14")
+    implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.14")
 }
 
 tasks.withType<KotlinCompile> {

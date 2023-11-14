@@ -2,7 +2,9 @@ package com.example.attendanceapi.gateway.api
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.raise.either
 import arrow.core.right
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -11,6 +13,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
+import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import java.io.OutputStream
 import java.net.HttpURLConnection
@@ -110,7 +113,45 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
             return FreeeReisterAttendanceError(e.message ?: "Freee打刻登録に失敗しました").left()
         }
     }
+
+    fun getLoginUser(code: String): Either<FreeeAuthenticationError, FreeeLoginUser> = either {
+        val authToken = "Bearer $code"
+        val headers = HttpHeaders()
+        headers.set("Authorization", authToken)
+        val url = URL("https://api.freee.co.jp/hr/api/v1/users/me")
+        val con = url.openConnection() as HttpURLConnection
+
+        con.connectTimeout = 20_000 // 20 秒
+        con.readTimeout = 20_000    // 20 秒
+        con.requestMethod = "GET"   // GETの場合は省略可能
+        con.setRequestProperty("Authorization", authToken);
+
+        con.connect()
+        val str = con.inputStream.bufferedReader(Charsets.UTF_8).use { br ->
+            br.readLines().joinToString("")
+        }
+
+        val json = Json { ignoreUnknownKeys = true }
+        con.disconnect()
+        json.decodeFromString<FreeeLoginUser>(str)
+    }
 }
+
+@Serializable
+data class FreeeLoginUser(
+    val id: Long,
+    val companies: List<Company>
+)
+
+@Serializable
+data class Company(
+    val id: Long,
+    val name: String,
+    val role: String,
+    @SerialName("external_cid") val externalCid: String,
+    @SerialName("employee_id") val employeeId: Long?,
+    @SerialName("display_name") val displayName: String?
+)
 
 @Serializable
 data class FreeeAuthenticationTokens(
@@ -121,14 +162,6 @@ data class FreeeAuthenticationTokens(
     val scope: String,
     val created_at: Int,
     val company_id: Int
-)
-
-@Serializable
-data class FreeeRegisterAttendancesResponse(
-    val break_records: List<BreakRecords>,
-    val clock_in_at: String,
-    val clock_out_at: String,
-    val date: String
 )
 
 data class FreeeAuthenticationError(val statusCode: Int, val message: String)

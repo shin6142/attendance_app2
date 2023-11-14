@@ -292,6 +292,25 @@ paths:
               schema:
                 type: string
                 format: uri # Optional - use if the Location header is an absolute URI, starting with http(s)://
+  /freee/me:
+    get:
+      tags:
+        - freee
+      operationId: get freee login user
+      parameters:
+        - name: code
+          in: header
+          required: true
+          schema:
+            type: string
+            example: 9574c05caefe56fe53d7fc022547861e6be4bab31898bb8b4a9fa719440d8b0b
+      responses:
+        "200":
+          description: "ok"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreeeLoginUser'
 components:
   schemas:
     employee:
@@ -393,4 +412,25 @@ components:
         - refresh_token
         - scope
         - created_at
+        - company_id
+    FreeeLoginUser:
+      description: FreeeLoginUser
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1884310
+        name:
+          type: string
+          example: 従業員名
+        company_name:
+          type: string
+          example: freee株式会社
+        company_id:
+          type: integer
+          example: 1884310
+      required:
+        - id
+        - name
+        - company_name
         - company_id

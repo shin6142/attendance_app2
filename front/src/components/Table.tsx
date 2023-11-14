@@ -2,7 +2,7 @@ import "./scss/list.scss"
 import {useEffect, useState} from "react";
 import {TableRow} from "./TableRow.tsx";
 import {Attendances, DailyAttendance} from "../types";
-import {authenticate, fetchAttendances, getTokenFromQueryParameter} from "../query";
+import {authenticate, fetchAttendances, getFreeeEmployeeId, getTokenFromQueryParameter} from "../query";
 import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
 
 

@@ -246,6 +246,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             responses.toString(),
             HttpStatus.CREATED
         )
-
     }
+
+
 }
