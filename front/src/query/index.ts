@@ -37,6 +37,6 @@ export const getTokenFromQueryParameter = (): string | null => {
 }
 
 export const getFreeeLoginUser = async (code: string):Promise<FreeLoginUser> => {
-    const {data} = await instance.get<FreeLoginUser, AxiosResponse<FreeLoginUser>>('/freee/me', { headers: { code: code } })
+    const {data} = await instance.get<FreeLoginUser, AxiosResponse<FreeLoginUser>>('/freee/me', { headers: { 'code' : code } })
     return data
 }
