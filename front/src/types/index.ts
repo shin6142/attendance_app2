@@ -14,3 +14,10 @@ export type Attendance = {
     context: string,
     kind: string,
 }
+
+export type FreeLoginUser = {
+    id: number,
+    name: string,
+    company_name: string,
+    company_id: number,
+}

@@ -1,4 +1,4 @@
-import {Attendances, DailyAttendance} from "../types";
+import {Attendances, DailyAttendance, FreeLoginUser} from "../types";
 import axios, {AxiosResponse} from "axios";
 
 export const downloadAttendancesCsv = (useId: String, year: String, month: String) => {
@@ -36,6 +36,7 @@ export const getTokenFromQueryParameter = (): string | null => {
     return url.searchParams.get("token")
 }
 
-export const getFreeeEmployeeId = (): string | null => {
-    return ""
+export const getFreeeLoginUser = async (code: string):Promise<FreeLoginUser> => {
+    const {data} = await instance.get<FreeLoginUser, AxiosResponse<FreeLoginUser>>('/freee/me', { headers: { code: code } })
+    return data
 }

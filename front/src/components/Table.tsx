@@ -2,13 +2,14 @@ import "./scss/list.scss"
 import {useEffect, useState} from "react";
 import {TableRow} from "./TableRow.tsx";
 import {Attendances, DailyAttendance} from "../types";
-import {authenticate, fetchAttendances, getFreeeEmployeeId, getTokenFromQueryParameter} from "../query";
+import {authenticate, fetchAttendances, getFreeeLoginUser, getTokenFromQueryParameter} from "../query";
 import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
 
 
 export const Table = () => {
     const [employeeId, setEmployeeId] = useState("U02FFCC308G")
-    const [freeeEmployeeId, setFreeeEmployeeId] = useState("1164735")
+    const [freeeEmployeeId, setFreeeEmployeeId] = useState("")
+    const [code, setCode] = useState<string | null>()
     const [year, setYear] = useState(new Date().getFullYear().toString())
     const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
     const [attendances, setAttendances] = useState<Attendances>()
@@ -22,6 +23,12 @@ export const Table = () => {
     }
 
     useEffect(() => {
+        setCode(getTokenFromQueryParameter())
+        if (code !== null) {
+            getFreeeLoginUser(code!).then(result => {
+                setFreeeEmployeeId(result.id.toString())
+            })
+        }
         fetchAttendances(employeeId, year, month).then(result => {
                 setAttendances(result)
                 setPostData(result.attendances)
@@ -45,7 +52,8 @@ export const Table = () => {
                 setFreeeEmployeeId(event.target.value)
             }}/>
             <button onClick={updateAttendances}>更新</button>
-            <RegisterAttendancesButton postData={postData} employeeId={freeeEmployeeId} year={year} month={month} token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
+            <RegisterAttendancesButton postData={postData} employeeId={freeeEmployeeId} year={year} month={month}
+                                       token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
             <table className="table" id={"attendances_table"}>
                 <thead>
                 <tr>
