@@ -1,6 +1,6 @@
 # attendance management application
 ## Description
-This application automates recording monthly attendances. for Slack and Freee User.
+This application automates recording monthly attendances for Slack and Freee User.
 
 ## Stack
 - Kotlin

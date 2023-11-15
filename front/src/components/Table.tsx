@@ -9,7 +9,6 @@ import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
 export const Table = () => {
     const [employeeId, setEmployeeId] = useState("U02FFCC308G")
     const [freeeEmployeeId, setFreeeEmployeeId] = useState("")
-    const [code, setCode] = useState<string | null>()
     const [year, setYear] = useState(new Date().getFullYear().toString())
     const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
     const [attendances, setAttendances] = useState<Attendances>()
@@ -17,23 +16,23 @@ export const Table = () => {
     const updateAttendances = () => {
         fetchAttendances(employeeId, year, month).then(result => {
                 setAttendances(result)
-                setPostData(result.attendances)
             }
         )
     }
 
     useEffect(() => {
-        setCode(getTokenFromQueryParameter())
-        if (code !== null) {
-            getFreeeLoginUser(code!).then(result => {
-                setFreeeEmployeeId(result.id.toString())
-            })
-        }
+        setPostData(attendances?.attendances || [])
+    }, [attendances]);
+
+    useEffect(() => {
         fetchAttendances(employeeId, year, month).then(result => {
                 setAttendances(result)
                 setPostData(result.attendances)
             }
         )
+        getFreeeLoginUser(getTokenFromQueryParameter() ?? "").then(result => {
+            setFreeeEmployeeId(result.id.toString())
+        })
     }, []);
 
     return (
@@ -48,11 +47,8 @@ export const Table = () => {
             <input type={"number"} value={month} onChange={(event) => {
                 setMonth(event.target.value)
             }}/>
-            <input type={"number"} value={freeeEmployeeId} onChange={(event) => {
-                setFreeeEmployeeId(event.target.value)
-            }}/>
             <button onClick={updateAttendances}>更新</button>
-            <RegisterAttendancesButton postData={postData} employeeId={freeeEmployeeId} year={year} month={month}
+            <RegisterAttendancesButton postData={postData} year={year} month={month} employeeId={freeeEmployeeId}
                                        token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
             <table className="table" id={"attendances_table"}>
                 <thead>

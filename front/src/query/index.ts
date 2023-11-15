@@ -18,8 +18,7 @@ export const fetchAttendances = async (employeeId: string, year: string, month: 
     return data
 }
 
-export const postAttendances = async (attendances: DailyAttendance[], employeeId: string, year: string, month: string, token: string | null = ""):Promise<[]> =>
-{
+export const postAttendances = async (attendances: DailyAttendance[], employeeId: string, year: string, month: string, token: string | null = ""): Promise<[]> => {
     const headers = {
         code: token
     }
@@ -36,7 +35,7 @@ export const getTokenFromQueryParameter = (): string | null => {
     return url.searchParams.get("token")
 }
 
-export const getFreeeLoginUser = async (code: string):Promise<FreeLoginUser> => {
-    const {data} = await instance.get<FreeLoginUser, AxiosResponse<FreeLoginUser>>('/freee/me', { headers: { 'code' : code } })
+export const getFreeeLoginUser = async (code: string): Promise<FreeLoginUser> => {
+    const {data} = await instance.get<FreeLoginUser, AxiosResponse<FreeLoginUser>>('/freee/me', {headers: {'code': code}})
     return data
 }

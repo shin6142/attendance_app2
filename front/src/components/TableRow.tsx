@@ -8,6 +8,20 @@ export const TableRow = (props: TableRowProps) => {
         setDatetime(props.attendance.datetime)
     }, [props.parentState])
 
+    useEffect(() => {
+        const updated = props.parentState.map((dailyAttendance) => {
+            if (dailyAttendance.date == props.date) {
+                dailyAttendance.attendances.map((attendance) => {
+                    if (attendance.kind == props.attendance.kind) {
+                        attendance.datetime = datetime
+                    }
+                })
+            }
+            return dailyAttendance
+        })
+        props.setState(updated)
+    }, [datetime]);
+
     return (
         <tr>
             <td>{props.attendance.employee_id}</td>
@@ -17,17 +31,6 @@ export const TableRow = (props: TableRowProps) => {
             <td>
                 <TextField value={datetime} onChange={(event) => {
                     setDatetime(event.target.value)
-                    const updated = props.parentState.map((dailyAttendance) => {
-                        if (dailyAttendance.date == props.date) {
-                            dailyAttendance.attendances.map((attendance) => {
-                                if (attendance.kind == props.attendance.kind) {
-                                    attendance.datetime = datetime
-                                }
-                            })
-                        }
-                        return dailyAttendance
-                    })
-                    props.setState(updated)
                 }}/>
             </td>
             <td>{props.attendance.context}</td>
