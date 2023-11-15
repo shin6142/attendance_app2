@@ -63,7 +63,18 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
         try {
             // Define the API endpoint URL
             val apiUrl = "https://api.freee.co.jp/hr/api/v1/employees/${input.employeeId}/work_records/${input.date}"
-
+            val breakRecords = listOf(
+                BreakRecord(
+                    clockInAt = input.breakRecords.clockInAt,
+                    clockOutAt = input.breakRecords.clockOutAt
+                )
+            )
+            val breakRecord = """
+                {
+                    "clock_in_at": "${input.breakRecords.clockInAt}",
+                    "clock_out_at": "${input.breakRecords.clockOutAt}"
+                }
+            """.trimIndent()
             // Define the request payload (data) as a JSON string
             val requestData = """
                 {
@@ -181,6 +192,11 @@ data class FreeeAttendanceInput(
 
 @Serializable
 data class BreakRecords(
+    val clockInAt: String,
+    val clockOutAt: String,
+)
+
+data class BreakRecord(
     val clockInAt: String,
     val clockOutAt: String,
 )
