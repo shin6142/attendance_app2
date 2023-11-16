@@ -36,7 +36,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<Attendances> =
-        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMonthlyByEmployeeId(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
             { ResponseEntity(Attendances(emptyList()), HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.map {
