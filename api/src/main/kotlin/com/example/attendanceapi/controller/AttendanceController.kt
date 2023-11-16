@@ -4,7 +4,7 @@ import com.example.attendance_api.openapi.generated.controller.AttendanceApi
 import com.example.attendance_api.openapi.generated.model.Attendance
 import com.example.attendance_api.openapi.generated.model.Attendances
 import com.example.attendance_api.openapi.generated.model.DailyAttendances
-import com.example.attendanceapi.gateway.api.BreakRecords
+import com.example.attendanceapi.gateway.api.BreakRecord
 import com.example.attendanceapi.gateway.api.FreeeApiDriver
 import com.example.attendanceapi.gateway.api.FreeeAttendanceInput
 import com.example.attendanceapi.usecase.AttendanceUseCase
@@ -36,7 +36,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<Attendances> =
-        useCase.getMonthlyByEmployeeId(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
             { ResponseEntity(Attendances(emptyList()), HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.map {
@@ -195,9 +195,11 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             employeeId = employeeId,
             date = this.date,
             companyId = companyId,
-            breakRecords = BreakRecords(
-                this.attendances.find { it -> it.kind == "LEAVE" }?.datetime ?: "",
-                this.attendances.find { it -> it.kind == "BACK" }?.datetime ?: "",
+            breakRecords = listOf(
+                BreakRecord(
+                    clockInAt = this.attendances.find { it -> it.kind == "LEAVE" }?.datetime ?: "",
+                    clockOutAt = this.attendances.find { it -> it.kind == "BACK" }?.datetime ?: "",
+                )
             ),
             clockInAt = this.attendances.find { it -> it.kind == "START" }?.datetime ?: "",
             clockOutAt = this.attendances.find { it -> it.kind == "END" }?.datetime ?: ""
@@ -231,9 +233,11 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
                 employeeId = employeeId,
                 date = key,
                 companyId = 1884310,
-                breakRecords = BreakRecords(
-                    value.find { it.contains("LEAVE") }?.get(3) ?: "",
-                    value.find { it.contains("BACK") }?.get(3) ?: "",
+                breakRecords = listOf(
+                    BreakRecord(
+                        value.find { it.contains("LEAVE") }?.get(3) ?: "",
+                        value.find { it.contains("BACK") }?.get(3) ?: "",
+                    )
                 ),
                 clockInAt = value.find { it.contains("START") }?.get(3) ?: "",
                 clockOutAt = value.find { it.contains("END") }?.get(3) ?: ""

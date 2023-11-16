@@ -36,13 +36,11 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver) : Attend
             }
 
     private fun defineKindFromText(text: String): AttendanceKind =
-        when(text){
-            ":si:" -> AttendanceKind.START
-            ":ri:" -> AttendanceKind.LEAVE
-            ":modo:" -> AttendanceKind.BACK
-            ":syu:" -> AttendanceKind.END
-            else -> AttendanceKind.UNKNOWN
-        }
+        if (text.contains(":si:")) AttendanceKind.START
+        else if (text.contains(":ri:"))  AttendanceKind.LEAVE
+        else if (text.contains(":modo:")) AttendanceKind.BACK
+        else if (text.contains(":syu:")) AttendanceKind.END
+        else AttendanceKind.UNKNOWN
 }
 
 data class RetrieveAttendancesErrorImpl(val input: String, val message: String) : RetrieveAttendancesError
