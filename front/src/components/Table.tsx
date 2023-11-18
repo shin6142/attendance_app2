@@ -4,6 +4,7 @@ import {TableRow} from "./TableRow.tsx";
 import {Attendances, DailyAttendance} from "../types";
 import {authenticate, fetchAttendances, getFreeeLoginUser, getTokenFromQueryParameter} from "../query";
 import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
+import {useForm} from "react-hook-form"
 
 
 export const Table = () => {
@@ -97,9 +98,27 @@ export const Table = () => {
         return rows
     }
 
+    const {register, handleSubmit} = useForm<Inputs>();
+    type Inputs = {
+        employeeId: string,
+        year: string,
+        month: string
+    }
 
     return (
         <div>
+            <form onSubmit={handleSubmit((inputs) => {
+                fetchAttendances(inputs.employeeId, inputs.year, inputs.month).then((result) => {
+                        setAttendances(result)
+                        setPostData(result.attendances)
+                    }
+                )
+            })}>
+                <input {...register("employeeId")}/>
+                <input {...register("year")}/>
+                <input {...register("month")}/>
+                <button type={"submit"}>更新</button>
+            </form>
             <button onClick={authenticate}>認証</button>
             <input type={"text"} value={employeeId} onChange={(event) => {
                 setEmployeeId(event.target.value)
