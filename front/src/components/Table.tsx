@@ -8,31 +8,16 @@ import {useForm} from "react-hook-form"
 
 
 export const Table = () => {
-    const [employeeId, setEmployeeId] = useState("U02FFCC308G")
     const [freeeEmployeeId, setFreeeEmployeeId] = useState("")
-    const [year, setYear] = useState(new Date().getFullYear().toString())
-    const [month, setMonth] = useState((new Date().getMonth() + 1).toString())
     const [attendances, setAttendances] = useState<Attendances>()
     const [postData, setPostData] = useState<DailyAttendance[]>([]);
     const [displayRows, setDisplayRows] = useState<DailyAttendance[]>([]);
-    const updateAttendances = () => {
-        fetchAttendances(employeeId, year, month).then(result => {
-                setAttendances(result)
-            }
-        )
-    }
 
     useEffect(() => {
         setPostData(attendances?.attendances || [])
     }, [attendances]);
 
     useEffect(() => {
-        fetchAttendances(employeeId, year, month).then(result => {
-                setAttendances(result)
-                setPostData(result.attendances)
-                setDisplayRows(rows(parseInt(year, 10), parseInt(month, 10), result.attendances || []))
-            }
-        )
         getFreeeLoginUser(getTokenFromQueryParameter() ?? "").then(result => {
             setFreeeEmployeeId(result.id.toString())
         })
@@ -98,7 +83,15 @@ export const Table = () => {
         return rows
     }
 
-    const {register, handleSubmit} = useForm<Inputs>();
+    const year = new Date().getFullYear().toString()
+    const month = (new Date().getMonth() + 1).toString()
+    const {register, handleSubmit} = useForm<Inputs>({
+        defaultValues: {
+            employeeId: "U02FFCC308G",
+            year: year,
+            month: month
+        }
+    })
     type Inputs = {
         employeeId: string,
         year: string,
@@ -120,16 +113,6 @@ export const Table = () => {
                 <button type={"submit"}>更新</button>
             </form>
             <button onClick={authenticate}>認証</button>
-            <input type={"text"} value={employeeId} onChange={(event) => {
-                setEmployeeId(event.target.value)
-            }}/>
-            <input type={"number"} value={year} onChange={(event) => {
-                setYear(event.target.value)
-            }}/>
-            <input type={"number"} value={month} onChange={(event) => {
-                setMonth(event.target.value)
-            }}/>
-            <button onClick={updateAttendances}>更新</button>
             <RegisterAttendancesButton postData={postData} year={year} month={month} employeeId={freeeEmployeeId}
                                        token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
             <table className="table" id={"attendances_table"}>
