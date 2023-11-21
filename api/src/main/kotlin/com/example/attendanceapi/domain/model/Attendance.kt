@@ -1,9 +1,5 @@
 package com.example.attendanceapi.domain.model
 
-import arrow.core.Either
-import arrow.core.getOrElse
-import arrow.core.left
-import arrow.core.right
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -69,12 +65,6 @@ class BreakRecord private constructor(val pair: Pair<Attendance, Attendance>) {
             }
         }
     }
-}
-
-data class BreakRecordError(val message: String)
-
-sealed interface AttendancesFilterByDateError {
-    data class NotFound(val input: LocalDate, val message: String) : AttendancesFilterByDateError
 }
 
 enum class AttendanceKind {

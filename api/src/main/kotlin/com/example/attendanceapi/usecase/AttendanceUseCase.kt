@@ -4,13 +4,17 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.right
 import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
+import com.example.attendanceapi.domain.model.Attendance
 import com.example.attendanceapi.domain.model.AttendanceKind
 import com.example.attendanceapi.domain.model.AttendanceKind.*
+import com.example.attendanceapi.domain.model.DailyAttendance
 import org.springframework.stereotype.Component
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Component
 class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
@@ -54,7 +58,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                                     ?: when (kind) {
                                         LEAVE -> "${pair.first} 12:00:00"
                                         START -> ""
-                                        BACK -> "${pair.first.toString()} 13:00:00"
+                                        BACK -> "${pair.first} 13:00:00"
                                         END -> ""
                                         UNKNOWN -> ""
                                     },
@@ -65,6 +69,10 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                     )
                 }.let { AttendancesOutput(it) }.right()
             }
+
+    fun recordAttendances(input: RecordAttendancesInput): String{
+        return attendanceGateway.recordAttendances(input.token, input.companyId.toInt(), input.employeeId.toInt(), input.list)
+    }
 
     data class AttendancesInput(val employeeId: String, val year: String, val month: String)
     data class AttendanceOutput(
@@ -78,6 +86,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     data class AttendancesOutput(val list: List<DailyAttendanceOutPut>)
 
     data class DailyAttendanceOutPut(val date: String, val attendance: List<AttendanceOutput>)
+    data class RecordAttendancesInput(val token: String, val companyId: String, val employeeId: String, val list: List<DailyAttendance>)
 
     private fun translateKind(kind: AttendanceKind): String =
         when (kind) {

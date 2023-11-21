@@ -4,6 +4,8 @@ import com.example.attendance_api.openapi.generated.controller.AttendanceApi
 import com.example.attendance_api.openapi.generated.model.Attendance
 import com.example.attendance_api.openapi.generated.model.Attendances
 import com.example.attendance_api.openapi.generated.model.DailyAttendances
+import com.example.attendanceapi.domain.model.AttendanceKind
+import com.example.attendanceapi.domain.model.DailyAttendance
 import com.example.attendanceapi.gateway.api.BreakRecord
 import com.example.attendanceapi.gateway.api.FreeeApiDriver
 import com.example.attendanceapi.gateway.api.FreeeAttendanceInput
@@ -17,6 +19,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import javax.validation.Valid
 
 
@@ -175,14 +181,80 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
     ): ResponseEntity<kotlin.String> {
         //FreeeAttendanceInputに変換
         val companyId = 1884310
-        val input = dailyAttendances.map { it.toFreeeAttendanceInput(code, companyId, employeeId) }
+        val responses = useCase.recordAttendances(
+            AttendanceUseCase.RecordAttendancesInput(
+                code,
+                companyId.toString(),
+                employeeId.toString(),
+                dailyAttendances.map { it ->
+                    DailyAttendance(
+                        // ""の場合の処理
+                        parseDate(it.date),
+                        it.attendances.map { attendance ->
+                            attendance.toAttendance(parseDate(it.date))
+                        }
+                    )
 
-        val responses = input.map { it -> freeeApiDriver.putAttendanceRecords(it).fold({ it.message }, { it }) }
-
+                }
+            )
+        )
         return ResponseEntity(
             responses.toString(),
             HttpStatus.CREATED
         )
+    }
+
+    fun parseDate(target: String): LocalDate {
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        return LocalDate.parse(target, dateFormatter)
+    }
+
+    fun Attendance.toAttendance(date: LocalDate): com.example.attendanceapi.domain.model.Attendance {
+        val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        return try {
+            com.example.attendanceapi.domain.model.Attendance.create(
+                this.employeeId,
+                LocalDateTime.parse(this.datetime, dateTimeFormatter),
+                this.context,
+                when (this.kind) {
+                    "START" -> AttendanceKind.START
+                    "LEAVE" -> AttendanceKind.LEAVE
+                    "BACK" -> AttendanceKind.BACK
+                    "END" -> AttendanceKind.END
+                    "UNKNOWN" -> AttendanceKind.UNKNOWN
+                    else -> {
+                        AttendanceKind.UNKNOWN
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            val defacultTimeStamp = when (this.kind) {
+                "START" -> LocalDateTime.of(date, LocalTime.of(9, 0, 0))
+                "LEAVE" -> LocalDateTime.of(date, LocalTime.of(12, 0, 0))
+                "BACK" -> LocalDateTime.of(date, LocalTime.of(13, 0, 0))
+                "END" -> LocalDateTime.of(date, LocalTime.of(18, 0, 0))
+                "UNKNOWN" -> LocalDateTime.of(date, LocalTime.of(0, 0, 0))
+                else -> {
+                    LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0, 0))
+                }
+            }
+
+            return com.example.attendanceapi.domain.model.Attendance.create(
+                this.employeeId,
+                defacultTimeStamp,
+                this.context,
+                when (this.kind) {
+                    "START" -> AttendanceKind.START
+                    "LEAVE" -> AttendanceKind.LEAVE
+                    "BACK" -> AttendanceKind.BACK
+                    "END" -> AttendanceKind.END
+                    "UNKNOWN" -> AttendanceKind.UNKNOWN
+                    else -> {
+                        AttendanceKind.UNKNOWN
+                    }
+                }
+            )
+        }
     }
 
     fun DailyAttendances.toFreeeAttendanceInput(

@@ -112,7 +112,7 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
 
             // Close the connection
             connection.disconnect()
-            return ("date: ${input.date}, result: $responseCode").right()
+            return ("input: ${input}, result: $responseCode").right()
         } catch (e: Exception) {
             return FreeeReisterAttendanceError(e.message ?: "Freee打刻登録に失敗しました").left()
         }
