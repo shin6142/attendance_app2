@@ -1,9 +1,9 @@
 package com.example.attendanceapi.domain.model
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
-import com.example.attendanceapi.gateway.api.BreakRecord
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -48,23 +48,24 @@ class Attendances(val list: List<Attendance>) {
 }
 
 class DailyAttendance(val date: LocalDate, val attendances: List<Attendance>) {
-
-
-    fun createBreakCords(): BreakRecords? {
-        val breaks = this.attendances.filter { it.kind == AttendanceKind.LEAVE || it.kind == AttendanceKind.END }
-        breaks.sortedWith(compareBy { it.dateTime })
-    }
+    fun createBreakRecords(): BreakRecords =
+        this.attendances.asSequence().filter { listOf(AttendanceKind.LEAVE, AttendanceKind.BACK).contains(it.kind) }
+            .sortedWith(compareBy { it.dateTime })
+            .chunked(2) { it[0] to it[1] }
+            .map { BreakRecord.of(it) }.filterNotNull().toList().let { BreakRecords(it) }
 }
 
-class BreakRecords(val breakRecords: List<com.example.attendanceapi.gateway.api.BreakRecord>)
+class BreakRecords(val breakRecords: List<BreakRecord>){
+    fun empty(): BreakRecords = BreakRecords(emptyList())
+}
 
-class BreakRecord private constructor(pair: Pair<Attendance, Attendance>) {
+class BreakRecord private constructor(val pair: Pair<Attendance, Attendance>) {
     companion object {
-        fun of(pair: Pair<Attendance, Attendance>) {
-            if (pair.first.kind == AttendanceKind.LEAVE || pair.second.kind == AttendanceKind.BACK) {
-                BreakRecord(pair).right()
+        fun of(pair: Pair<Attendance, Attendance>): BreakRecord? {
+            return if (pair.first.kind == AttendanceKind.LEAVE || pair.second.kind == AttendanceKind.BACK) {
+                BreakRecord(pair)
             } else {
-                BreakRecordError("").left()
+                null
             }
         }
     }
