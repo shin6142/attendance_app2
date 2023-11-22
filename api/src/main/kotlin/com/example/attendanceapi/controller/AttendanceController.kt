@@ -187,11 +187,16 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
                 companyId.toString(),
                 employeeId.toString(),
                 dailyAttendances.map { it ->
-                    DailyAttendance(
+                    AttendanceUseCase.DailyAttendanceInput(
                         // ""の場合の処理
-                        parseDate(it.date),
+                        it.date,
                         it.attendances.map { attendance ->
-                            attendance.toAttendance(parseDate(it.date))
+                            AttendanceUseCase.AttendanceInput(
+                                employeeId = employeeId.toString(),
+                                dateTime = attendance.datetime,
+                                context = attendance.context,
+                                kind = attendance.kind
+                            )
                         }
                     )
 
@@ -199,84 +204,10 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             )
         )
         return ResponseEntity(
-            responses.toString(),
+            responses,
             HttpStatus.CREATED
         )
     }
-
-    fun parseDate(target: String): LocalDate {
-        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        return LocalDate.parse(target, dateFormatter)
-    }
-
-    fun Attendance.toAttendance(date: LocalDate): com.example.attendanceapi.domain.model.Attendance {
-        val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        return try {
-            com.example.attendanceapi.domain.model.Attendance.create(
-                this.employeeId,
-                LocalDateTime.parse(this.datetime, dateTimeFormatter),
-                this.context,
-                when (this.kind) {
-                    "START" -> AttendanceKind.START
-                    "LEAVE" -> AttendanceKind.LEAVE
-                    "BACK" -> AttendanceKind.BACK
-                    "END" -> AttendanceKind.END
-                    "UNKNOWN" -> AttendanceKind.UNKNOWN
-                    else -> {
-                        AttendanceKind.UNKNOWN
-                    }
-                }
-            )
-        } catch (e: Exception) {
-            val defacultTimeStamp = when (this.kind) {
-                "START" -> LocalDateTime.of(date, LocalTime.of(9, 0, 0))
-                "LEAVE" -> LocalDateTime.of(date, LocalTime.of(12, 0, 0))
-                "BACK" -> LocalDateTime.of(date, LocalTime.of(13, 0, 0))
-                "END" -> LocalDateTime.of(date, LocalTime.of(18, 0, 0))
-                "UNKNOWN" -> LocalDateTime.of(date, LocalTime.of(0, 0, 0))
-                else -> {
-                    LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0, 0))
-                }
-            }
-
-            return com.example.attendanceapi.domain.model.Attendance.create(
-                this.employeeId,
-                defacultTimeStamp,
-                this.context,
-                when (this.kind) {
-                    "START" -> AttendanceKind.START
-                    "LEAVE" -> AttendanceKind.LEAVE
-                    "BACK" -> AttendanceKind.BACK
-                    "END" -> AttendanceKind.END
-                    "UNKNOWN" -> AttendanceKind.UNKNOWN
-                    else -> {
-                        AttendanceKind.UNKNOWN
-                    }
-                }
-            )
-        }
-    }
-
-    fun DailyAttendances.toFreeeAttendanceInput(
-        authenticationCode: String,
-        companyId: Int,
-        employeeId: Int,
-    ): FreeeAttendanceInput =
-        FreeeAttendanceInput(
-            authenticationCode = authenticationCode,
-            employeeId = employeeId,
-            date = this.date,
-            companyId = companyId,
-            breakRecords = listOf(
-                BreakRecord(
-                    clockInAt = this.attendances.find { it -> it.kind == "LEAVE" }?.datetime ?: "",
-                    clockOutAt = this.attendances.find { it -> it.kind == "BACK" }?.datetime ?: "",
-                )
-            ),
-            clockInAt = this.attendances.find { it -> it.kind == "START" }?.datetime ?: "",
-            clockOutAt = this.attendances.find { it -> it.kind == "END" }?.datetime ?: ""
-        )
-
 
     override fun uploadMonthlyByEmployeeId(
         @Parameter(

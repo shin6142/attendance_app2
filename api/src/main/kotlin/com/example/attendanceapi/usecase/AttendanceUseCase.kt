@@ -9,12 +9,8 @@ import com.example.attendanceapi.domain.model.AttendanceKind
 import com.example.attendanceapi.domain.model.AttendanceKind.*
 import com.example.attendanceapi.domain.model.DailyAttendance
 import org.springframework.stereotype.Component
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.Month
+import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 @Component
 class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
@@ -70,9 +66,74 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                 }.let { AttendancesOutput(it) }.right()
             }
 
-    fun recordAttendances(input: RecordAttendancesInput): String{
-        return attendanceGateway.recordAttendances(input.token, input.companyId.toInt(), input.employeeId.toInt(), input.list)
+    fun recordAttendances(input: RecordAttendancesInput): String {
+        return attendanceGateway.recordAttendances(
+            input.token,
+            input.companyId.toInt(),
+            input.employeeId.toInt(),
+            input.list.map { it.toDailyAttendance() }
+        )
     }
+
+    private fun DailyAttendanceInput.toDailyAttendance(): DailyAttendance {
+        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val date = LocalDate.parse(this.date, dateFormatter)
+        return DailyAttendance(
+            date = date,
+            attendances = this.list.map { attendanceInput ->
+                attendanceInput.toAttendance(date)
+            }
+        )
+    }
+
+    private fun AttendanceInput.toAttendance(date: LocalDate): Attendance {
+        val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        return try {
+            Attendance.create(
+                this.employeeId,
+                LocalDateTime.parse(this.dateTime, dateTimeFormatter),
+                this.context,
+                when (this.kind) {
+                    "START" -> START
+                    "LEAVE" -> LEAVE
+                    "BACK" -> BACK
+                    "END" -> END
+                    "UNKNOWN" -> UNKNOWN
+                    else -> {
+                        UNKNOWN
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            val defacultTimeStamp = when (this.kind) {
+                "START" -> LocalDateTime.of(date, LocalTime.of(9, 0, 0))
+                "LEAVE" -> LocalDateTime.of(date, LocalTime.of(12, 0, 0))
+                "BACK" -> LocalDateTime.of(date, LocalTime.of(13, 0, 0))
+                "END" -> LocalDateTime.of(date, LocalTime.of(18, 0, 0))
+                "UNKNOWN" -> LocalDateTime.of(date, LocalTime.of(0, 0, 0))
+                else -> {
+                    LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0, 0))
+                }
+            }
+
+            return Attendance.create(
+                this.employeeId,
+                defacultTimeStamp,
+                this.context,
+                when (this.kind) {
+                    "START" -> START
+                    "LEAVE" -> LEAVE
+                    "BACK" -> BACK
+                    "END" -> END
+                    "UNKNOWN" -> UNKNOWN
+                    else -> {
+                        UNKNOWN
+                    }
+                }
+            )
+        }
+    }
+
 
     data class AttendancesInput(val employeeId: String, val year: String, val month: String)
     data class AttendanceOutput(
@@ -86,7 +147,24 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     data class AttendancesOutput(val list: List<DailyAttendanceOutPut>)
 
     data class DailyAttendanceOutPut(val date: String, val attendance: List<AttendanceOutput>)
-    data class RecordAttendancesInput(val token: String, val companyId: String, val employeeId: String, val list: List<DailyAttendance>)
+    data class RecordAttendancesInput(
+        val token: String,
+        val companyId: String,
+        val employeeId: String,
+        val list: List<DailyAttendanceInput>
+    )
+
+    data class DailyAttendanceInput(
+        val date: String,
+        val list: List<AttendanceInput>
+    )
+
+    data class AttendanceInput(
+        val employeeId: String,
+        val dateTime: String,
+        val context: String,
+        val kind: String
+    )
 
     private fun translateKind(kind: AttendanceKind): String =
         when (kind) {
@@ -96,7 +174,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             END -> "END"
             UNKNOWN -> "UNKNOWN"
         }
-
 }
 
 interface UseCaseError
