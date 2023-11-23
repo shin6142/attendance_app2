@@ -7,9 +7,11 @@ import com.example.attendanceapi.domain.model.DailyAttendance
 interface AttendanceGateway {
     fun retrieveAttendances(employeeId: String, year: String, month: String): Either<RetrieveAttendancesError, Attendances>
 
-    fun recordAttendances(token: String, companyId: Int, employeeId: Int, dailyAttendances: List<DailyAttendance>): String
+    fun recordAttendances(token: String, companyId: Int, employeeId: Int, dailyAttendances: List<DailyAttendance>): Either<RecordAttendancesError, RecordAttendancesResult>
 }
 
 interface RetrieveAttendancesError
 
 interface RecordAttendancesError
+
+interface RecordAttendancesResult

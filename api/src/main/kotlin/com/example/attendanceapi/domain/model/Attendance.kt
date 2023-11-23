@@ -1,8 +1,12 @@
 package com.example.attendanceapi.domain.model
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import javax.accessibility.AccessibleText
 
 class Attendance(
     val attendanceId: UUID,
@@ -36,6 +40,9 @@ class Attendances(val list: List<Attendance>) {
     private fun filterByDate(date: LocalDate): Attendances =
         Attendances(list.filter { it.onDate(date) })
 
+    fun filterByKind(kinds: List<AttendanceKind>): List<Attendance> =
+        this.list.filter { attendance -> kinds.contains(attendance.kind) }
+
     fun filterByDateAndKind(date: LocalDate, kind: AttendanceKind): Attendance? =
         this.filterByDate(date).list.find { it -> it.kind == kind }
 
@@ -43,15 +50,30 @@ class Attendances(val list: List<Attendance>) {
         list.groupBy { it.dateTime.toLocalDate().toString() }.map { Pair(it.key, it.value) }
 }
 
-class DailyAttendance(val date: LocalDate, val attendances: List<Attendance>) {
+class DailyAttendance (val date: LocalDate, val attendances: List<Attendance>) {
+    companion object {
+        fun of(date: LocalDate, attendances: List<Attendance>): Either<DailyAttendanceError, DailyAttendance> {
+            val validKinds = setOf(AttendanceKind.START, AttendanceKind.LEAVE, AttendanceKind.BACK, AttendanceKind.END)
+            val filtered = attendances.filter { attendance -> validKinds.contains(attendance.kind) }
+            return if (validKinds == filtered.map { it.kind }.toSet()) {
+                DailyAttendance(date, attendances).right()
+            } else {
+                DailyAttendanceError("").left()
+            }
+        }
+    }
+
     fun createBreakRecords(): BreakRecords =
         this.attendances.asSequence().filter { listOf(AttendanceKind.LEAVE, AttendanceKind.BACK).contains(it.kind) }
             .sortedWith(compareBy { it.dateTime })
             .chunked(2) { it[0] to it[1] }
             .map { BreakRecord.of(it) }.filterNotNull().toList().let { BreakRecords(it) }
+
 }
 
-class BreakRecords(val breakRecords: List<BreakRecord>){
+data class DailyAttendanceError(val message: String)
+
+class BreakRecords(val breakRecords: List<BreakRecord>) {
     fun empty(): BreakRecords = BreakRecords(emptyList())
 }
 

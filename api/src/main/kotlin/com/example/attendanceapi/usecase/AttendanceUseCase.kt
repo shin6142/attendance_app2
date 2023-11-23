@@ -2,6 +2,7 @@ package com.example.attendanceapi.usecase
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.right
 import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
 import com.example.attendanceapi.domain.model.Attendance
@@ -40,7 +41,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             .flatMap { attendances ->
                 val weekDays = getWeekdaysInMonth(input.year.toInt(), input.month.toInt())
 
-                weekDays.map { day ->
+                filterJapaneseHoliday(weekDays, input.year.toInt()).map { day ->
                     day to listOf(START, LEAVE, BACK, END)
                 }.map { pair ->
                     DailyAttendanceOutPut(
@@ -67,23 +68,33 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             }
 
     fun recordAttendances(input: RecordAttendancesInput): String {
-        return attendanceGateway.recordAttendances(
+        val dailyAttendances = input.list.map { dailyAttendanceInput ->
+            dailyAttendanceInput.toDailyAttendance().getOrElse {
+                return ""
+            }
+        }
+
+        attendanceGateway.recordAttendances(
             input.token,
             input.companyId.toInt(),
             input.employeeId.toInt(),
-            input.list.map { it.toDailyAttendance() }
+            dailyAttendances
         )
+
+        return ""
     }
 
-    private fun DailyAttendanceInput.toDailyAttendance(): DailyAttendance {
+    private fun DailyAttendanceInput.toDailyAttendance(): Either<ToDailyAttendanceError, DailyAttendance> {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val date = LocalDate.parse(this.date, dateFormatter)
-        return DailyAttendance(
+        return DailyAttendance.of(
             date = date,
             attendances = this.list.map { attendanceInput ->
                 attendanceInput.toAttendance(date)
             }
-        )
+        ).mapLeft {
+            ToDailyAttendanceError(it.message)
+        }
     }
 
     private fun AttendanceInput.toAttendance(date: LocalDate): Attendance {
@@ -177,8 +188,8 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
 }
 
 interface UseCaseError
-data class GetMonthlyByEmployeeIdError(val input: AttendanceUseCase.AttendancesInput, val message: String) :
-    UseCaseError
+data class GetMonthlyByEmployeeIdError(val input: AttendanceUseCase.AttendancesInput, val message: String) : UseCaseError
+data class ToDailyAttendanceError(val message: String) : UseCaseError
 
 fun getWeekdaysInMonth(year: Int, monthInt: Int): List<LocalDate> {
     val month = Month.of(monthInt)
@@ -197,3 +208,25 @@ fun getWeekdaysInMonth(year: Int, monthInt: Int): List<LocalDate> {
     return weekdaysInMonth
 }
 
+fun getJapaneseHoliday(year: Int): List<LocalDate> {
+    return listOf(
+        LocalDate.of(year, 1, 1),
+        LocalDate.of(year, 1, 2),
+        LocalDate.of(year, 2, 11),
+        LocalDate.of(year, 2, 23),
+        LocalDate.of(year, 4, 29),
+        LocalDate.of(year, 5, 3),
+        LocalDate.of(year, 5, 4),
+        LocalDate.of(year, 5, 5),
+        LocalDate.of(year, 7, 3),
+        LocalDate.of(year, 8, 11),
+        LocalDate.of(year, 9, 3),
+        LocalDate.of(year, 10, 2),
+        LocalDate.of(year, 11, 3),
+        LocalDate.of(year, 11, 23),
+        LocalDate.of(year, 12, 23),
+    )
+}
+
+fun filterJapaneseHoliday(list: List<LocalDate>, year: Int): List<LocalDate> =
+    list.filter { date -> getJapaneseHoliday(year).contains(date).not() }

@@ -1,6 +1,8 @@
 package com.example.attendanceapi.domain.model
 
+import arrow.core.getOrElse
 import arrow.core.raise.result
+import arrow.core.right
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDate

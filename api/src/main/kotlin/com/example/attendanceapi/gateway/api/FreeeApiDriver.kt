@@ -1,9 +1,11 @@
 package com.example.attendanceapi.gateway.api
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
+import jdk.jshell.Snippet.Status
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -11,6 +13,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.Response
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpHeaders
@@ -58,9 +61,16 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
         }
     }
 
+    fun saveAttendances(input: List<FreeeAttendanceInput>): Either<FreeeReisterAttendanceError, List<Pair<FreeeAttendanceInput, String>>> =
+        either {
+            input.map {
+                putAttendanceRecords(it).bind()
+            }
+        }
 
-    fun putAttendanceRecords(input: FreeeAttendanceInput): Either<FreeeReisterAttendanceError, String> {
-        try {
+
+    fun putAttendanceRecords(input: FreeeAttendanceInput): Either<FreeeReisterAttendanceError, Pair<FreeeAttendanceInput, String>> =
+        either {
             // Define the API endpoint URL
             val apiUrl = "https://api.freee.co.jp/hr/api/v1/employees/${input.employeeId}/work_records/${input.date}"
             val breakRecords = input.breakRecords.map { breakRecord ->
@@ -106,17 +116,10 @@ class FreeeApiDriver(@Autowired private val env: Environment) {
             outputStream.write(requestData.toByteArray())
             outputStream.flush()
             outputStream.close()
-
-            // Get the response code
-            val responseCode = connection.responseCode
-
             // Close the connection
             connection.disconnect()
-            return ("input: ${input}, result: $responseCode").right()
-        } catch (e: Exception) {
-            return FreeeReisterAttendanceError(e.message ?: "Freee打刻登録に失敗しました").left()
+            Pair(input, "${connection.responseCode}: ${connection.responseMessage}")
         }
-    }
 
     fun getLoginUser(code: String): Either<FreeeAuthenticationError, FreeeLoginUser> = either {
         val authToken = "Bearer $code"

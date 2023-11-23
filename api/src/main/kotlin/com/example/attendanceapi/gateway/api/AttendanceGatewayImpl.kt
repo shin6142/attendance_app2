@@ -1,12 +1,10 @@
 package com.example.attendanceapi.gateway.api
 
-import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.left
-import arrow.core.right
+import arrow.core.*
 import com.example.attendance_api.openapi.generated.model.DailyAttendances
 import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
 import com.example.attendanceapi.domain.gateway.api.RecordAttendancesError
+import com.example.attendanceapi.domain.gateway.api.RecordAttendancesResult
 import com.example.attendanceapi.domain.gateway.api.RetrieveAttendancesError
 import com.example.attendanceapi.domain.model.Attendance
 import com.example.attendanceapi.domain.model.AttendanceKind
@@ -25,7 +23,7 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
         employeeId: String,
         year: String,
         month: String
-    ): Either<RetrieveAttendancesErrorImpl, Attendances> =
+    ): Either<RetrieveAttendancesError, Attendances> =
         slackApiDriver.fetchMessages(employeeId, year, month)
             .mapLeft { RetrieveAttendancesErrorImpl("", "") }
             .flatMap { slackApiResponse ->
@@ -46,11 +44,14 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
         companyId: Int,
         employeeId: Int,
         dailyAttendances: List<DailyAttendance>
-    ): String {
-        return dailyAttendances.map {
-            freeeApiDriver.putAttendanceRecords(toFreeeAttendanceInput(token, companyId, employeeId, it))
-        }.toString()
-    }
+    ): Either<RecordAttendancesError, RecordAttendancesResult> =
+        dailyAttendances.map { toFreeeAttendanceInput(token, companyId, employeeId, it) }.let {
+            freeeApiDriver.saveAttendances(it)
+        }.mapLeft {
+            RecordAttendancesErrorImpl("", "")
+        }.flatMap{
+            RecordAttendancesResultImpl("", it).right()
+        }
 
     private fun toFreeeAttendanceInput(
         authenticationCode: String,
@@ -83,3 +84,5 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
 
 data class RetrieveAttendancesErrorImpl(val input: String, val message: String) : RetrieveAttendancesError
 data class RecordAttendancesErrorImpl(val input: String, val message: String) : RecordAttendancesError
+
+data class RecordAttendancesResultImpl (val input: String, val message: List<Any>) : RecordAttendancesResult
