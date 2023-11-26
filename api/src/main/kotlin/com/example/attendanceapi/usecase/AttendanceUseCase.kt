@@ -40,7 +40,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
             .flatMap { attendances ->
                 val weekDays = getWeekdaysInMonth(input.year.toInt(), input.month.toInt())
-
+                // TODO: 2回以上のLEAVE, BACKに対応する。
                 filterJapaneseHoliday(weekDays, input.year.toInt()).map { day ->
                     day to listOf(START, LEAVE, BACK, END)
                 }.map { pair ->
@@ -80,7 +80,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             input.employeeId.toInt(),
             dailyAttendances
         )
-
+        //TODO: Either<RecordAttendancesError, RecordAttendancesOutput>を返却する
         return ""
     }
 
@@ -147,13 +147,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
 
 
     data class AttendancesInput(val employeeId: String, val year: String, val month: String)
-    data class AttendanceOutput(
-        val employeeId: String,
-        val employeeName: String,
-        val datetime: String,
-        val context: String,
-        val kind: String
-    )
 
     data class AttendancesOutput(val list: List<DailyAttendanceOutPut>)
 
@@ -161,6 +154,11 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     data class RecordAttendancesInput(
         val token: String,
         val companyId: String,
+        val employeeId: String,
+        val list: List<DailyAttendanceInput>
+    )
+
+    data class RecordAttendancesOutput(
         val employeeId: String,
         val list: List<DailyAttendanceInput>
     )
@@ -173,6 +171,14 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     data class AttendanceInput(
         val employeeId: String,
         val dateTime: String,
+        val context: String,
+        val kind: String
+    )
+
+    data class AttendanceOutput(
+        val employeeId: String,
+        val employeeName: String,
+        val datetime: String,
         val context: String,
         val kind: String
     )

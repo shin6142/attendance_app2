@@ -47,8 +47,8 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
     ): Either<RecordAttendancesError, RecordAttendancesResult> =
         dailyAttendances.map { toFreeeAttendanceInput(token, companyId, employeeId, it) }.let {
             freeeApiDriver.saveAttendances(it)
-        }.mapLeft {
-            RecordAttendancesErrorImpl("", "")
+        }.mapLeft { error ->
+            RecordAttendancesErrorImpl("", error.message)
         }.flatMap{
             RecordAttendancesResultImpl("", it).right()
         }
