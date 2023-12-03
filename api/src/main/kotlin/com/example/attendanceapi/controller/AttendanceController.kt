@@ -4,8 +4,6 @@ import com.example.attendance_api.openapi.generated.controller.AttendanceApi
 import com.example.attendance_api.openapi.generated.model.Attendance
 import com.example.attendance_api.openapi.generated.model.Attendances
 import com.example.attendance_api.openapi.generated.model.DailyAttendances
-import com.example.attendanceapi.domain.model.AttendanceKind
-import com.example.attendanceapi.domain.model.DailyAttendance
 import com.example.attendanceapi.gateway.api.BreakRecord
 import com.example.attendanceapi.gateway.api.FreeeApiDriver
 import com.example.attendanceapi.gateway.api.FreeeAttendanceInput
@@ -19,10 +17,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RestController
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import javax.validation.Valid
 
 
