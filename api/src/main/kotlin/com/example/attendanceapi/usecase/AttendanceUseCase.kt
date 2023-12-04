@@ -1,9 +1,6 @@
 package com.example.attendanceapi.usecase
 
-import arrow.core.Either
-import arrow.core.flatMap
-import arrow.core.getOrElse
-import arrow.core.right
+import arrow.core.*
 import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
 import com.example.attendanceapi.domain.model.Attendance
 import com.example.attendanceapi.domain.model.AttendanceKind
@@ -18,11 +15,11 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     fun getMessages(input: AttendancesInput): Either<GetMonthlyByEmployeeIdError, AttendancesOutput> =
         attendanceGateway.retrieveAttendances(input.employeeId, input.year, input.month)
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
-            .flatMap { attendances ->
-                attendances.splitIntoDailyAttendances().map { pair ->
+            .flatMap { dailyAttendances ->
+                dailyAttendances.map { it ->
                     DailyAttendanceOutPut(
-                        pair.first,
-                        pair.second.map {
+                        it.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        it.attendances.map {
                             AttendanceOutput(
                                 it.employeeId,
                                 "従業員名",
@@ -35,54 +32,56 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                 }.let { AttendancesOutput(it) }.right()
             }
 
-    fun getMonthlyByEmployeeId(input: AttendancesInput): Either<GetMonthlyByEmployeeIdError, AttendancesOutput> =
-        attendanceGateway.retrieveAttendances(input.employeeId, input.year, input.month)
-            .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
-            .flatMap { attendances ->
-                val weekDays = getWeekdaysInMonth(input.year.toInt(), input.month.toInt())
-                // TODO: 2回以上のLEAVE, BACKに対応する。
-                filterJapaneseHoliday(weekDays, input.year.toInt()).map { day ->
-                    day to listOf(START, LEAVE, BACK, END)
-                }.map { pair ->
-                    DailyAttendanceOutPut(
-                        pair.first.toString(),
-                        pair.second.map { kind ->
-                            val targetAttendance = attendances.filterByDateAndKind(pair.first, kind)
-                            AttendanceOutput(
-                                input.employeeId,
-                                "従業員名",
-                                targetAttendance?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                                    ?: when (kind) {
-                                        LEAVE -> "${pair.first} 12:00:00"
-                                        START -> ""
-                                        BACK -> "${pair.first} 13:00:00"
-                                        END -> ""
-                                        UNKNOWN -> ""
-                                    },
-                                targetAttendance?.context ?: "",
-                                translateKind(kind)
-                            )
-                        }
-                    )
-                }.let { AttendancesOutput(it) }.right()
-            }
+//    fun getMonthlyByEmployeeId(input: AttendancesInput): Either<GetMonthlyByEmployeeIdError, AttendancesOutput> =
+//        attendanceGateway.retrieveAttendances(input.employeeId, input.year, input.month)
+//            .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
+//            .flatMap { attendances ->
+//                val weekDays = getWeekdaysInMonth(input.year.toInt(), input.month.toInt())
+//                // TODO: 2回以上のLEAVE, BACKに対応する。
+//                filterJapaneseHoliday(weekDays, input.year.toInt()).filterUntilToday().map { day ->
+//                    day to listOf(START, LEAVE, BACK, END)
+//                }.map { pair ->
+//                    pair.second.map { kind ->
+//                        val targetAttendance = attendances.filterByDateAndKind(pair.first, kind)
+//                        AttendanceOutput(
+//                            input.employeeId,
+//                            "従業員名",
+//                            targetAttendance?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+//                                ?: when (kind) {
+//                                    LEAVE -> "${pair.first} 12:00:00"
+//                                    START -> ""
+//                                    BACK -> "${pair.first} 13:00:00"
+//                                    END -> ""
+//                                    UNKNOWN -> ""
+//                                },
+//                            targetAttendance?.context ?: "",
+//                            translateKind(kind)
+//                        )
+//                    }.let {
+//                        DailyAttendanceOutPut(pair.first.toString(), it)
+//                    }
+//
+//                }.let { AttendancesOutput(it) }.right()
+//            }
 
-    fun recordAttendances(input: RecordAttendancesInput): String {
-        val dailyAttendances = input.list.map { dailyAttendanceInput ->
+    fun recordAttendances(input: RecordAttendancesInput): Either<RecordAttendancesError, RecordAttendancesOutput> =
+        input.list.map { dailyAttendanceInput ->
             dailyAttendanceInput.toDailyAttendance().getOrElse {
-                return ""
+                return RecordAttendancesError("RecordAttendancesError: toDailyAttendance: ${it.message}").left()
             }
+        }.let {
+            attendanceGateway.recordAttendances(
+                input.token,
+                input.companyId.toInt(),
+                input.employeeId.toInt(),
+                it
+            )
+        }.mapLeft { error ->
+            RecordAttendancesError(error.toString())
+        }.flatMap {
+            RecordAttendancesOutput(input.employeeId, input.list).right()
         }
 
-        attendanceGateway.recordAttendances(
-            input.token,
-            input.companyId.toInt(),
-            input.employeeId.toInt(),
-            dailyAttendances
-        )
-        //TODO: Either<RecordAttendancesError, RecordAttendancesOutput>を返却する
-        return ""
-    }
 
     private fun DailyAttendanceInput.toDailyAttendance(): Either<ToDailyAttendanceError, DailyAttendance> {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -194,8 +193,12 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
 }
 
 interface UseCaseError
-data class GetMonthlyByEmployeeIdError(val input: AttendanceUseCase.AttendancesInput, val message: String) : UseCaseError
+data class GetMonthlyByEmployeeIdError(val input: AttendanceUseCase.AttendancesInput, val message: String) :
+    UseCaseError
+
 data class ToDailyAttendanceError(val message: String) : UseCaseError
+
+data class RecordAttendancesError(val message: String) : UseCaseError
 
 fun getWeekdaysInMonth(year: Int, monthInt: Int): List<LocalDate> {
     val month = Month.of(monthInt)
@@ -236,3 +239,6 @@ fun getJapaneseHoliday(year: Int): List<LocalDate> {
 
 fun filterJapaneseHoliday(list: List<LocalDate>, year: Int): List<LocalDate> =
     list.filter { date -> getJapaneseHoliday(year).contains(date).not() }
+
+fun List<LocalDate>.filterUntilToday(): List<LocalDate> =
+    this.filter { date -> date <= LocalDate.now() }

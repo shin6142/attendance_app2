@@ -10,7 +10,7 @@ import javax.accessibility.AccessibleText
 
 class Attendance(
     val attendanceId: UUID,
-    val employeeId: String,
+    val employeeId: String, // TODO: DailyAttendanceに移譲する
     val dateTime: LocalDateTime,
     val context: String,
     val kind: AttendanceKind
@@ -50,7 +50,7 @@ class Attendances(val list: List<Attendance>) {
         list.groupBy { it.dateTime.toLocalDate().toString() }.map { Pair(it.key, it.value) }
 }
 
-class DailyAttendance (val date: LocalDate, val attendances: List<Attendance>) {
+class DailyAttendance(val date: LocalDate, val attendances: List<Attendance>) {
     companion object {
         fun of(date: LocalDate, attendances: List<Attendance>): Either<DailyAttendanceError, DailyAttendance> {
             val validKinds = setOf(AttendanceKind.START, AttendanceKind.LEAVE, AttendanceKind.BACK, AttendanceKind.END)
@@ -58,7 +58,7 @@ class DailyAttendance (val date: LocalDate, val attendances: List<Attendance>) {
             return if (validKinds == filtered.map { it.kind }.toSet()) {
                 DailyAttendance(date, attendances).right()
             } else {
-                DailyAttendanceError("").left()
+                DailyAttendanceError(attendances.toString()).left()
             }
         }
     }
@@ -67,14 +67,32 @@ class DailyAttendance (val date: LocalDate, val attendances: List<Attendance>) {
         this.attendances.asSequence().filter { listOf(AttendanceKind.LEAVE, AttendanceKind.BACK).contains(it.kind) }
             .sortedWith(compareBy { it.dateTime })
             .chunked(2) { it[0] to it[1] }
-            .map { BreakRecord.of(it) }.filterNotNull().toList().let { BreakRecords(it) }
+            .map { BreakRecord.of(it) }.filterNotNull().toList().let { BreakRecords("", date, it) }
 
 }
 
 data class DailyAttendanceError(val message: String)
 
-class BreakRecords(val breakRecords: List<BreakRecord>) {
-    fun empty(): BreakRecords = BreakRecords(emptyList())
+class BreakRecords(val employeeId: String, val date: LocalDate, val breakRecords: List<BreakRecord>) {
+
+    fun default(employeeId: String, date: LocalDate): BreakRecords {
+        val list = listOfNotNull(
+            BreakRecord.of(
+                pair = (Attendance.create(
+                    employeeId,
+                    LocalDateTime.of(date.year, date.month, date.dayOfMonth, 12, 0, 0),
+                    "",
+                    AttendanceKind.LEAVE
+                ) to (Attendance.create(
+                    employeeId,
+                    LocalDateTime.of(date.year, date.month, date.dayOfMonth, 13, 0, 0),
+                    "",
+                    AttendanceKind.LEAVE
+                )))
+            )
+        )
+        return BreakRecords(employeeId, date, list)
+    }
 }
 
 class BreakRecord private constructor(val pair: Pair<Attendance, Attendance>) {

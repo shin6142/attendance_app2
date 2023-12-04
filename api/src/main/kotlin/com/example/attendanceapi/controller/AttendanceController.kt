@@ -1,5 +1,7 @@
 package com.example.attendanceapi.controller
 
+import arrow.core.flatMap
+import arrow.core.getOrElse
 import com.example.attendance_api.openapi.generated.controller.AttendanceApi
 import com.example.attendance_api.openapi.generated.model.Attendance
 import com.example.attendance_api.openapi.generated.model.Attendances
@@ -36,7 +38,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<Attendances> =
-        useCase.getMonthlyByEmployeeId(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
             { ResponseEntity(Attendances(emptyList()), HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.map {
@@ -117,7 +119,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<String> =
-        useCase.getMonthlyByEmployeeId(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
             { ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.flatMap { it ->
@@ -175,7 +177,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
     ): ResponseEntity<kotlin.String> {
         //FreeeAttendanceInputに変換
         val companyId = 1884310
-        val responses = useCase.recordAttendances(
+        useCase.recordAttendances(
             AttendanceUseCase.RecordAttendancesInput(
                 code,
                 companyId.toString(),
@@ -196,12 +198,13 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
 
                 }
             )
-        )
-        return ResponseEntity(
-            responses,
-            HttpStatus.CREATED
-        )
+        ).fold({ error ->
+            return ResponseEntity(error.toString(), HttpStatus.BAD_REQUEST)
+        }, { output ->
+            return ResponseEntity(output.toString(), HttpStatus.CREATED)
+        })
     }
+
 
     override fun uploadMonthlyByEmployeeId(
         @Parameter(

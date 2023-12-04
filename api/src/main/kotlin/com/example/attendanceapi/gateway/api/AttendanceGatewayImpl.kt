@@ -12,6 +12,7 @@ import com.example.attendanceapi.domain.model.Attendances
 import com.example.attendanceapi.domain.model.DailyAttendance
 import org.springframework.stereotype.Component
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -23,7 +24,7 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
         employeeId: String,
         year: String,
         month: String
-    ): Either<RetrieveAttendancesError, Attendances> =
+    ): Either<RetrieveAttendancesError, List<DailyAttendance>> =
         slackApiDriver.fetchMessages(employeeId, year, month)
             .mapLeft { RetrieveAttendancesErrorImpl("", "") }
             .flatMap { slackApiResponse ->
@@ -36,7 +37,9 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
                         it.text,
                         defineKindFromText(it.text)
                     )
-                }.let { Attendances(it) }.right()
+                }.groupBy {it.dateTime}.map {
+                    DailyAttendance(LocalDate.of(it.key.year, it.key.month, it.key.dayOfMonth), it.value)
+                }.right()
             }
 
     override fun recordAttendances(
