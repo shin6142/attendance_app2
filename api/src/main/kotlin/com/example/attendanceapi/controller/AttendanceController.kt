@@ -185,6 +185,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
                 dailyAttendances.map { it ->
                     AttendanceUseCase.DailyAttendanceInput(
                         // ""の場合の処理
+                        employeeId.toString(),
                         it.date,
                         it.attendances.map { attendance ->
                             AttendanceUseCase.AttendanceInput(

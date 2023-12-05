@@ -16,19 +16,9 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         attendanceGateway.retrieveAttendances(input.employeeId, input.year, input.month)
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
             .flatMap { dailyAttendances ->
-                dailyAttendances.map { it ->
-                    DailyAttendanceOutPut(
-                        it.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                        it.attendances.map {
-                            AttendanceOutput(
-                                it.employeeId,
-                                "従業員名",
-                                it.dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                                it.context,
-                                translateKind(it.kind)
-                            )
-                        }
-                    )
+                dailyAttendances.map { dailyAttendance ->
+                    // TODO: kind分ループする
+                    dailyAttendance.toDailyAttendanceOutPut()
                 }.let { AttendancesOutput(it) }.right()
             }
 
@@ -87,6 +77,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val date = LocalDate.parse(this.date, dateFormatter)
         return DailyAttendance.of(
+            employeeId = this.employeeId,
             date = date,
             attendances = this.list.map { attendanceInput ->
                 attendanceInput.toAttendance(date)
@@ -100,7 +91,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         return try {
             Attendance.create(
-                this.employeeId,
                 LocalDateTime.parse(this.dateTime, dateTimeFormatter),
                 this.context,
                 when (this.kind) {
@@ -127,7 +117,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             }
 
             return Attendance.create(
-                this.employeeId,
                 defacultTimeStamp,
                 this.context,
                 when (this.kind) {
@@ -143,6 +132,28 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             )
         }
     }
+
+    private fun DailyAttendance.toDailyAttendanceOutPut(): DailyAttendanceOutPut {
+        val attendances = this.createBreakRecords().records.flatMap { it.pair.toList() }.map {
+            it.toAttendanceOutput()
+        }.toMutableList()
+        attendances.add(0, this.start()?.toAttendanceOutput() ?: AttendanceOutput("", "", "", "", "START"))
+        attendances.add(this.end()?.toAttendanceOutput() ?: AttendanceOutput("", "", "", "", "END"))
+
+        return DailyAttendanceOutPut(
+            date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+            attendances
+        )
+    }
+
+    private fun Attendance.toAttendanceOutput(): AttendanceOutput =
+        AttendanceOutput(
+            "",
+            "",
+            this.dateTime.toString(),
+            this.context,
+            this.kind.toString()
+        )
 
 
     data class AttendancesInput(val employeeId: String, val year: String, val month: String)
@@ -163,6 +174,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     )
 
     data class DailyAttendanceInput(
+        val employeeId: String,
         val date: String,
         val list: List<AttendanceInput>
     )

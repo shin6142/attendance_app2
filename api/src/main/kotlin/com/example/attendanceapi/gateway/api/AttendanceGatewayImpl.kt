@@ -1,14 +1,12 @@
 package com.example.attendanceapi.gateway.api
 
 import arrow.core.*
-import com.example.attendance_api.openapi.generated.model.DailyAttendances
 import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
 import com.example.attendanceapi.domain.gateway.api.RecordAttendancesError
 import com.example.attendanceapi.domain.gateway.api.RecordAttendancesResult
 import com.example.attendanceapi.domain.gateway.api.RetrieveAttendancesError
 import com.example.attendanceapi.domain.model.Attendance
 import com.example.attendanceapi.domain.model.AttendanceKind
-import com.example.attendanceapi.domain.model.Attendances
 import com.example.attendanceapi.domain.model.DailyAttendance
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -30,15 +28,14 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
             .flatMap { slackApiResponse ->
                 slackApiResponse.messages.matches.map {
                     Attendance.create(
-                        employeeId,
                         // 秒数をミリ秒に変換してInstantを作成
                         Instant.ofEpochMilli((it.ts.toDouble() * 1000).toLong()).atZone(ZoneId.systemDefault())
                             .toLocalDateTime(),
                         it.text,
                         defineKindFromText(it.text)
                     )
-                }.groupBy {it.dateTime}.map {
-                    DailyAttendance(LocalDate.of(it.key.year, it.key.month, it.key.dayOfMonth), it.value)
+                }.groupBy {it.dateTime.toLocalDate()}.map {
+                    DailyAttendance(employeeId, it.key, it.value)
                 }.right()
             }
 
@@ -67,7 +64,7 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
             employeeId = employeeId,
             date = dailyAttendance.date.toString(),
             companyId = companyId,
-            breakRecords = dailyAttendance.createBreakRecords().breakRecords.map { it ->
+            breakRecords = dailyAttendance.createBreakRecords().records.map { it ->
                 BreakRecord(
                     it.pair.first.dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                     it.pair.second.dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
