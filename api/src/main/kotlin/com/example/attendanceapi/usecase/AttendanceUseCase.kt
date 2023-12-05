@@ -17,7 +17,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
             .flatMap { dailyAttendances ->
                 dailyAttendances.map { dailyAttendance ->
-                    // TODO: kind分ループする
                     dailyAttendance.toDailyAttendanceOutPut()
                 }.let { AttendancesOutput(it) }.right()
             }

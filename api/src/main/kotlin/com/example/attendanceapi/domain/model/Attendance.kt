@@ -66,17 +66,28 @@ class DailyAttendance(val employeeId: String, val date: LocalDate, val attendanc
     fun start(): Attendance? = this.attendances.find { it.kind == AttendanceKind.START }
     fun end(): Attendance? = this.attendances.find { it.kind == AttendanceKind.END }
 
-    private fun breaks(): List<Attendance> = this.attendances.filter{ it.kind == AttendanceKind.LEAVE || it.kind == AttendanceKind.BACK}
+    private fun breaks(): Attendances =
+        this.attendances.filter { it.kind == AttendanceKind.LEAVE || it.kind == AttendanceKind.BACK }
+            .let { Attendances(it) }
 
     fun createBreakRecords(): BreakRecords {
         val breaks = this.breaks()
-        return if(breaks.isEmpty()){
+        return if (breaks.list.isEmpty()) {
             BreakRecords.default(employeeId, date)
-        }else{
-            BreakRecords.default(employeeId, date)
+        } else {
+            val leaveRecords = breaks.list.filter { it.kind == AttendanceKind.LEAVE }
+            val backRecords = breaks.list.filter { it.kind == AttendanceKind.BACK }
+            BreakRecords(
+                this.employeeId,
+                this.date,
+                leaveRecords.mapIndexed { idx, records ->
+                    BreakRecord.of(
+                        pair = (records to backRecords[idx])
+                    )
+                }
+            )
         }
     }
-
 }
 
 data class DailyAttendanceError(val message: String)
@@ -105,11 +116,23 @@ class BreakRecords(val employeeId: String, val date: LocalDate, val records: Lis
 
 class BreakRecord private constructor(val pair: Pair<Attendance, Attendance>) {
     companion object {
-        fun of(pair: Pair<Attendance, Attendance>): BreakRecord? {
+        fun of(pair: Pair<Attendance, Attendance>): BreakRecord {
             return if (pair.first.kind == AttendanceKind.LEAVE || pair.second.kind == AttendanceKind.BACK) {
                 BreakRecord(pair)
             } else {
-                null
+                val date = pair.first.dateTime
+                of(
+                    Attendance.create(
+                        LocalDateTime.of(date.year, date.month, date.dayOfMonth, 12, 0, 0),
+                        "",
+                        AttendanceKind.LEAVE
+                    ) to Attendance.create(
+                        LocalDateTime.of(date.year, date.month, date.dayOfMonth, 12, 0, 0),
+                        "",
+                        AttendanceKind.LEAVE
+                    )
+
+                )
             }
         }
     }
