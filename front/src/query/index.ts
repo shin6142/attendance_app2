@@ -13,8 +13,8 @@ const instance = axios.create({
     baseURL: 'http://localhost:8080'
 })
 
-export const fetchAttendances = async (employeeId: string, year: string, month: string): Promise<Attendances> => {
-    const {data} = await instance.get<Attendances, AxiosResponse<Attendances>>(`/attendances/${employeeId}/${year}/${month}`)
+export const fetchAttendances = async (employeeId: string, channelName: string, year: string, month: string): Promise<Attendances> => {
+    const {data} = await instance.get<Attendances, AxiosResponse<Attendances>>(`/attendances/${employeeId}/${channelName}/${year}/${month}`)
     return data
 }
 

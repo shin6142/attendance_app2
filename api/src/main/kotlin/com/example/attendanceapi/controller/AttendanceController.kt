@@ -29,6 +29,8 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             description = "target attendance employee's id",
             required = true
         ) @PathVariable(value = "employee_id") employeeId: String,
+        @PathVariable("channel_name") channelName: kotlin.String,
+        @Parameter(description = "target attendance year", required = true)
         @Parameter(
             description = "target attendance year",
             required = true
@@ -38,7 +40,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<Attendances> =
-        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, channelName, month)).fold(
             { ResponseEntity(Attendances(emptyList()), HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.map {
@@ -63,6 +65,8 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             description = "target attendance employee's id",
             required = true
         ) @PathVariable(value = "employee_id") employeeId: String,
+        @PathVariable("channel_name") channelName: kotlin.String,
+        @Parameter(description = "target attendance year", required = true)
         @Parameter(
             description = "target attendance year",
             required = true
@@ -72,7 +76,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<String> =
-        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, channelName, month)).fold(
             { ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.flatMap { it ->
@@ -110,6 +114,8 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             description = "target attendance employee's id",
             required = true
         ) @PathVariable(value = "employee_id") employeeId: String,
+        @PathVariable("channel_name") channelName: kotlin.String,
+        @Parameter(description = "target attendance year", required = true)
         @Parameter(
             description = "target attendance year",
             required = true
@@ -119,7 +125,7 @@ class AttendanceController(private val useCase: AttendanceUseCase, val freeeApiD
             required = true
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<String> =
-        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, month)).fold(
+        useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, channelName, month)).fold(
             { ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.flatMap { it ->

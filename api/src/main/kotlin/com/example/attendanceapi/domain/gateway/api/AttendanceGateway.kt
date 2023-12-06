@@ -5,7 +5,7 @@ import com.example.attendanceapi.domain.model.Attendances
 import com.example.attendanceapi.domain.model.DailyAttendance
 
 interface AttendanceGateway {
-    fun retrieveAttendances(employeeId: String, year: String, month: String): Either<RetrieveAttendancesError, List<DailyAttendance>>
+    fun retrieveAttendances(employeeId: String, channelName: String, year: String, month: String): Either<RetrieveAttendancesError, List<DailyAttendance>>
 
     fun recordAttendances(token: String, companyId: Int, employeeId: Int, dailyAttendances: List<DailyAttendance>): Either<RecordAttendancesError, RecordAttendancesResult>
 }

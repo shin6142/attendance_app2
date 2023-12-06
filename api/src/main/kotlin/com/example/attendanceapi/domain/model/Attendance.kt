@@ -35,15 +35,6 @@ class Attendance(
 class Attendances(val list: List<Attendance>) {
     private fun filterByDate(date: LocalDate): Attendances =
         Attendances(list.filter { it.onDate(date) })
-
-    fun filterByKind(kinds: List<AttendanceKind>): List<Attendance> =
-        this.list.filter { attendance -> kinds.contains(attendance.kind) }
-
-    fun filterByDateAndKind(date: LocalDate, kind: AttendanceKind): Attendance? =
-        this.filterByDate(date).list.find { it -> it.kind == kind }
-
-    fun splitIntoDailyAttendances(): List<Pair<String, List<Attendance>>> =
-        list.groupBy { it.dateTime.toLocalDate().toString() }.map { Pair(it.key, it.value) }
 }
 
 class DailyAttendance(val employeeId: String, val date: LocalDate, val attendances: List<Attendance>) {

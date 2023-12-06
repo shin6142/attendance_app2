@@ -27,12 +27,14 @@ export const Table = () => {
     const {register, handleSubmit} = useForm<Inputs>({
         defaultValues: {
             employeeId: "U02FFCC308G",
+            channelName: "grp-dev-勤怠",
             year: year,
             month: month
         }
     })
     type Inputs = {
         employeeId: string,
+        channelName: string,
         year: string,
         month: string
     }
@@ -40,13 +42,14 @@ export const Table = () => {
     return (
         <div>
             <form onSubmit={handleSubmit((inputs) => {
-                fetchAttendances(inputs.employeeId, inputs.year, inputs.month).then((result) => {
+                fetchAttendances(inputs.employeeId, inputs.channelName, inputs.year, inputs.month).then((result) => {
                         setAttendances(result)
                         setPostData(result.attendances)
                     }
                 )
             })}>
                 <input {...register("employeeId")}/>
+                <input {...register("channelName")}/>
                 <input {...register("year")}/>
                 <input {...register("month")}/>
                 <button type={"submit"}>更新</button>

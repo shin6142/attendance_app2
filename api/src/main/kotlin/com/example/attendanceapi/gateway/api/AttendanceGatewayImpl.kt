@@ -20,10 +20,11 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
     AttendanceGateway {
     override fun retrieveAttendances(
         employeeId: String,
+        channelName: String,
         year: String,
         month: String
     ): Either<RetrieveAttendancesError, List<DailyAttendance>> =
-        slackApiDriver.fetchMessages(employeeId, year, month)
+        slackApiDriver.fetchMessages(employeeId, year, channelName, month)
             .mapLeft { RetrieveAttendancesErrorImpl("", "") }
             .flatMap { slackApiResponse ->
                 slackApiResponse.messages.matches.map {

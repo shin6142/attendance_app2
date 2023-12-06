@@ -54,7 +54,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/employee'
-  /attendances/{employee_id}/{year}/{month}:
+  /attendances/{employee_id}/{channel_name}/{year}/{month}:
     get:
       tags:
         - Attendance
@@ -66,6 +66,13 @@ paths:
           description: target attendance employee's id
           required: true
           example: U02FFCC308G
+          schema:
+            type: string
+        - name: channel_name
+          in: path
+          description: target attendance channelName
+          required: true
+          example: grp-dev-勤怠
           schema:
             type: string
         - name: year
@@ -152,6 +159,13 @@ paths:
           example: U02FFCC308G
           schema:
             type: string
+        - name: channel_name
+          in: path
+          description: target attendance channelName
+          required: true
+          example: grp-dev-勤怠
+          schema:
+            type: string
         - name: year
           in: path
           description: target attendance year
@@ -194,6 +208,13 @@ paths:
           description: target attendance employee's id
           required: true
           example: U02FFCC308G
+          schema:
+            type: string
+        - name: channel_name
+          in: path
+          description: target attendance channelName
+          required: true
+          example: grp-dev-勤怠
           schema:
             type: string
         - name: year

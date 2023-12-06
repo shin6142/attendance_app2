@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 @Component
 class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     fun getMessages(input: AttendancesInput): Either<GetMonthlyByEmployeeIdError, AttendancesOutput> =
-        attendanceGateway.retrieveAttendances(input.employeeId, input.year, input.month)
+        attendanceGateway.retrieveAttendances(input.employeeId, input.channelName, input.year, input.month)
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
             .flatMap { dailyAttendances ->
                 dailyAttendances.sortedBy { it.date }.map { dailyAttendance ->
@@ -123,7 +123,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         )
 
 
-    data class AttendancesInput(val employeeId: String, val year: String, val month: String)
+    data class AttendancesInput(val employeeId: String, val channelName: String, val year: String, val month: String)
 
     data class AttendancesOutput(val list: List<DailyAttendanceOutPut>)
 
