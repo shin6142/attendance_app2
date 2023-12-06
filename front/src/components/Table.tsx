@@ -11,7 +11,6 @@ export const Table = () => {
     const [freeeEmployeeId, setFreeeEmployeeId] = useState("")
     const [attendances, setAttendances] = useState<Attendances>()
     const [postData, setPostData] = useState<DailyAttendance[]>([]);
-    const [displayRows, setDisplayRows] = useState<DailyAttendance[]>([]);
 
     useEffect(() => {
         setPostData(attendances?.attendances || [])
@@ -22,66 +21,6 @@ export const Table = () => {
             setFreeeEmployeeId(result.id.toString())
         })
     }, []);
-
-    const getWeekdaysOfMonth = (year: number, month: number): Date[] => {
-        const weekdays: Date[] = [];
-        // 月の最初の日
-        let currentDate = new Date(year, month - 1, 1);
-
-        // 月の最終日まで繰り返す
-        while (currentDate.getMonth() === month - 1) {
-            // 日曜日（0）または土曜日（6）でない場合、平日としてリストに追加
-            if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-                weekdays.push(new Date(currentDate));
-            }
-
-            // 次の日に進む
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        return weekdays;
-    }
-
-
-    const formatDateTime = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
-
-    const formatDate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    const rows = (year: number, month: number, dailyAttendances: DailyAttendance[]): DailyAttendance[] => {
-        const weekdays = getWeekdaysOfMonth(year, month)
-        const rows: DailyAttendance[] = []
-        console.log(dailyAttendances)
-        weekdays.forEach(weekday => {
-            const dailyAttendance: DailyAttendance = {
-                date: formatDate(weekday),
-                attendances: []
-            }
-            dailyAttendances.forEach(dailyAttendance => {
-                dailyAttendance.attendances.forEach(attendance => {
-                    if (attendance.datetime.includes(formatDate(weekday))) {
-                        dailyAttendance.attendances.push(attendance)
-                    }
-                })
-            })
-            console.log(dailyAttendance)
-            rows.push(dailyAttendance)
-        })
-        return rows
-    }
 
     const year = new Date().getFullYear().toString()
     const month = (new Date().getMonth() + 1).toString()
@@ -139,18 +78,6 @@ export const Table = () => {
                         ></TableRow>
                     )
                 )}
-                {/*{rows(parseInt(year), parseInt(month), attendances?.attendances ?? [])?.map(dailyAttendance =>*/}
-                {/*    dailyAttendance.attendances.map((attendance, i) =>*/}
-                {/*        <TableRow key={i}*/}
-                {/*                  date={dailyAttendance.date}*/}
-                {/*                  attendance={attendance}*/}
-                {/*                  setState={(arg) => {*/}
-                {/*                      console.log(arg)*/}
-                {/*                  }}*/}
-                {/*                  parentState={attendances?.attendances ?? []}*/}
-                {/*        ></TableRow>*/}
-                {/*    )*/}
-                {/*)}*/}
                 </tbody>
             </table>
         </div>
