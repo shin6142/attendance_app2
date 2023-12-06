@@ -68,13 +68,15 @@ export const Table = () => {
                 <tbody>
                 {attendances?.attendances.map(dailyAttendance =>
                     dailyAttendance.attendances.map((attendance, i) =>
-                        <TableRow key={i}
-                                  date={dailyAttendance.date}
-                                  attendance={attendance}
-                                  setState={(arg) => {
-                                      console.log(arg)
-                                  }}
-                                  parentState={attendances?.attendances ?? []}
+                        <TableRow
+                            kind={attendance.kind}
+                            key={i}
+                            date={dailyAttendance.date}
+                            attendance={attendance}
+                            setState={(arg) => {
+                                console.log(arg)
+                            }}
+                            parentState={attendances?.attendances ?? []}
                         ></TableRow>
                     )
                 )}

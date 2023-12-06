@@ -27,7 +27,7 @@ export const TableRow = (props: TableRowProps) => {
             <td>{props.attendance.employee_id}</td>
             <td>{props.attendance.employee_name}</td>
             <td>{props.date}</td>
-            <td>{props.attendance.kind}</td>
+            <td className={props.kind}>{props.attendance.kind}</td>
             <td>
                 <TextField value={datetime} onChange={(event) => {
                     setDatetime(event.target.value)
@@ -42,5 +42,6 @@ type TableRowProps = {
     date: string
     attendance: Attendance
     parentState: DailyAttendance[]
+    kind: string
     setState: (dailyAttendances: DailyAttendance[]) => void
 }

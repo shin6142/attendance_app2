@@ -16,7 +16,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         attendanceGateway.retrieveAttendances(input.employeeId, input.year, input.month)
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
             .flatMap { dailyAttendances ->
-                dailyAttendances.map { dailyAttendance ->
+                dailyAttendances.sortedBy { it.date }.map { dailyAttendance ->
                     dailyAttendance.toDailyAttendanceOutPut()
                 }.let { AttendancesOutput(it) }.right()
             }
