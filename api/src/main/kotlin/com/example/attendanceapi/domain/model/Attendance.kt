@@ -71,9 +71,14 @@ class DailyAttendance(val employeeId: String, val date: LocalDate, val attendanc
             BreakRecords(
                 this.employeeId,
                 this.date,
-                leaveRecords.mapIndexed { idx, records ->
+                leaveRecords.mapIndexed { idx, record ->
+                    val back = if (backRecords.count() > idx) {
+                        backRecords[idx]
+                    } else {
+                        Attendance.create(record.dateTime.plusHours(1), "add 1hour to leave time", AttendanceKind.LEAVE)
+                    }
                     BreakRecord.of(
-                        pair = (records to backRecords[idx])
+                        pair = (record to back)
                     )
                 }
             )
