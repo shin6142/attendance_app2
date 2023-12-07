@@ -120,11 +120,11 @@ class BreakRecord private constructor(val pair: Pair<Attendance, Attendance>) {
                 of(
                     Attendance.create(
                         LocalDateTime.of(date.year, date.month, date.dayOfMonth, 12, 0, 0),
-                        "",
+                        "defalt leave time",
                         AttendanceKind.LEAVE
                     ) to Attendance.create(
                         LocalDateTime.of(date.year, date.month, date.dayOfMonth, 12, 0, 0),
-                        "",
+                        "defalt back time",
                         AttendanceKind.LEAVE
                     )
 
