@@ -26,7 +26,7 @@ export const Table = () => {
     const month = (new Date().getMonth() + 1).toString()
     const {register, handleSubmit} = useForm<Inputs>({
         defaultValues: {
-            employeeId: "U02FFCC308G",
+            employeeId: "",
             channelName: "grp-dev-勤怠",
             year: year,
             month: month
