@@ -1,4 +1,4 @@
-export type Attendances = {
+export type DailyAttendances = {
     attendances: DailyAttendance[]
 }
 
@@ -8,6 +8,7 @@ export type DailyAttendance = {
 }
 
 export type Attendance = {
+    attendance_id: string,
     employee_id: number,
     employee_name: string,
     datetime: string,

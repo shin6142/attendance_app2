@@ -8,6 +8,7 @@ import com.example.attendanceapi.domain.model.DailyAttendance
 import org.springframework.stereotype.Component
 import java.time.*
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Component
 class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
@@ -80,8 +81,8 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         val attendances = this.createBreakRecords().records.flatMap { it.pair.toList() }.map {
             it.toAttendanceOutput()
         }.toMutableList()
-        attendances.add(0, this.start()?.toAttendanceOutput() ?: AttendanceOutput("", "", "", "", "START"))
-        attendances.add(this.end()?.toAttendanceOutput() ?: AttendanceOutput("", "", "", "", "END"))
+        attendances.add(0, this.start()?.toAttendanceOutput() ?: AttendanceOutput(UUID.randomUUID().toString(),"", "", "", "", "START"))
+        attendances.add(this.end()?.toAttendanceOutput() ?: AttendanceOutput(UUID.randomUUID().toString(),"", "", "", "", "END"))
 
         return DailyAttendanceOutPut(
             date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
@@ -91,6 +92,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
 
     private fun Attendance.toAttendanceOutput(): AttendanceOutput =
         AttendanceOutput(
+            this.attendanceId.toString(),
             "",
             "",
             this.dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
@@ -130,6 +132,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     )
 
     data class AttendanceOutput(
+        val attendanceId: String,
         val employeeId: String,
         val employeeName: String,
         val datetime: String,

@@ -66,8 +66,8 @@ class DailyAttendance(val employeeId: String, val date: LocalDate, val attendanc
         return if (breaks.list.isEmpty()) {
             BreakRecords.default(employeeId, date)
         } else {
-            val leaveRecords = breaks.list.filter { it.kind == AttendanceKind.LEAVE }
-            val backRecords = breaks.list.filter { it.kind == AttendanceKind.BACK }
+            val leaveRecords = breaks.list.filter { it.kind == AttendanceKind.LEAVE }.sortedBy { it.dateTime }
+            val backRecords = breaks.list.filter { it.kind == AttendanceKind.BACK }.sortedBy { it.dateTime }
             if(leaveRecords.count() == backRecords.count()){
                 BreakRecords(
                     this.employeeId,

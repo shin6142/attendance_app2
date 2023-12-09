@@ -145,152 +145,6 @@ paths:
               items:
                 $ref: '#/components/schemas/dailyAttendances'
         required: true
-  /message/{employee_id}/{year}/{month}/download:
-    get:
-      tags:
-        - Attendance
-      operationId: output messages monthly by employee id
-      summary: output messages monthly by employee id
-      parameters:
-        - name: employee_id
-          in: path
-          description: target attendance employee's id
-          required: true
-          example: U02FFCC308G
-          schema:
-            type: string
-        - name: channel_name
-          in: path
-          description: target attendance channelName
-          required: true
-          example: grp-dev-勤怠
-          schema:
-            type: string
-        - name: year
-          in: path
-          description: target attendance year
-          required: true
-          example: 2023
-          schema:
-            type: string
-        - name: month
-          in: path
-          description: target attendance year
-          required: true
-          example: 09
-          schema:
-            type: string
-      responses:
-        "200":
-          description: "ok"
-          content:
-            text/csv:
-              schema:
-                type: string
-              example: |
-                勤務日,従業員ID,従業員名,打刻時間,打刻種別
-                20231020,1,山家紳,2023-10-20 09:00:00,START
-          headers:
-            Content-Disposition:
-              description: Specifies the filename for the downloaded CSV
-              schema:
-                type: string
-                example: attachment; filename=attendances.csv
-  /attendances/{employee_id}/{year}/{month}/download:
-    get:
-      tags:
-        - Attendance
-      operationId: download monthly by employee id
-      summary: download monthly by employee id
-      parameters:
-        - name: employee_id
-          in: path
-          description: target attendance employee's id
-          required: true
-          example: U02FFCC308G
-          schema:
-            type: string
-        - name: channel_name
-          in: path
-          description: target attendance channelName
-          required: true
-          example: grp-dev-勤怠
-          schema:
-            type: string
-        - name: year
-          in: path
-          description: target attendance year
-          required: true
-          example: 2023
-          schema:
-            type: string
-        - name: month
-          in: path
-          description: target attendance year
-          required: true
-          example: 09
-          schema:
-            type: string
-      responses:
-        "200":
-          description: "ok"
-          content:
-            text/csv:
-              schema:
-                type: string
-              example: |
-                勤務日,従業員ID,従業員名,打刻時間,打刻種別
-                20231020,1,山家紳,2023-10-20 09:00:00,START
-          headers:
-            Content-Disposition:
-              description: Specifies the filename for the downloaded CSV
-              schema:
-                type: string
-                example: attachment; filename=attendances.csv
-  /attendances/{employee_id}/{year}/{month}/upload:
-    post:
-      tags:
-        - Attendance
-      operationId: upload monthly by employee id
-      summary: upload monthly by employee id
-      parameters:
-        - name: employee_id
-          in: path
-          description: target attendance employee's id
-          required: true
-          example: 1
-          schema:
-            type: integer
-        - name: year
-          in: path
-          description: target attendance year
-          required: true
-          example: 2023
-          schema:
-            type: string
-        - name: month
-          in: path
-          description: target attendance year
-          required: true
-          example: 09
-          schema:
-            type: string
-      responses:
-        "201":
-          description: "created"
-          content:
-            application/json:
-              schema:
-                type: string
-      requestBody:
-        content:
-          text/csv:
-            schema:
-              type: string
-            example: |
-              勤務日,従業員ID,従業員名,打刻時間,打刻種別, メッセージ
-              20231020,1,山家紳,2023-10-20 09:00:00,START,:si:
-        required: true
   /freee/authenticate/callback:
     get:
       tags:
@@ -362,9 +216,12 @@ components:
       required:
         - attendances
     attendance:
-      description: bulk of attendance
+      description: attendance
       type: object
       properties:
+        attendance_id:
+          type: string
+          example: e386e6b2-61d8-4fbe-8b29-10f3289df147
         employee_id:
           type: string
           example: U02FFCC308G
@@ -381,6 +238,7 @@ components:
           type: string
           example: START
       required:
+        - attendance_id
         - employee_id
         - employee_name
         - datetime

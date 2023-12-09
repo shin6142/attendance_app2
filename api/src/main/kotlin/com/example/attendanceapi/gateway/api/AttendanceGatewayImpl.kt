@@ -71,8 +71,8 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
                     it.pair.second.dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
                 )
             },
-            clockInAt = dailyAttendance.attendances.find { it -> it.kind == AttendanceKind.START }?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) ?: "",
-            clockOutAt = dailyAttendance.attendances.find { it -> it.kind == AttendanceKind.END }?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) ?: "",
+            clockInAt = dailyAttendance.start()?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) ?: "",
+            clockOutAt = dailyAttendance.end()?.dateTime?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) ?: "",
         )
 
     private fun defineKindFromText(text: String): AttendanceKind =

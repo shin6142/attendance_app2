@@ -1,7 +1,7 @@
 import "./scss/list.scss"
 import {useEffect, useState} from "react";
 import {TableRow} from "./TableRow.tsx";
-import {Attendances, DailyAttendance} from "../types";
+import {DailyAttendances, DailyAttendance} from "../types";
 import {authenticate, fetchAttendances, getFreeeLoginUser, getTokenFromQueryParameter} from "../query";
 import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
 import {useForm} from "react-hook-form"
@@ -9,7 +9,7 @@ import {useForm} from "react-hook-form"
 
 export const Table = () => {
     const [freeeEmployeeId, setFreeeEmployeeId] = useState("")
-    const [attendances, setAttendances] = useState<Attendances>()
+    const [attendances, setAttendances] = useState<DailyAttendances>()
     const [postData, setPostData] = useState<DailyAttendance[]>([]);
 
     useEffect(() => {

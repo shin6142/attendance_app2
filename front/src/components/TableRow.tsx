@@ -13,7 +13,7 @@ export const TableRow = (props: TableRowProps) => {
         const updated = props.parentState.map((dailyAttendance) => {
             if (dailyAttendance.date == props.date) {
                 dailyAttendance.attendances.map((attendance) => {
-                    if (attendance.kind == props.attendance.kind) {
+                    if (attendance.attendance_id == props.attendance.attendance_id) {
                         attendance.datetime = datetime
                     }
                 })

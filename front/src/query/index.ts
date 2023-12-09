@@ -1,20 +1,12 @@
-import {Attendances, DailyAttendance, FreeLoginUser} from "../types";
+import {DailyAttendances, DailyAttendance, FreeLoginUser} from "../types";
 import axios, {AxiosResponse} from "axios";
-
-export const downloadAttendancesCsv = (useId: String, year: String, month: String) => {
-    window.location.href = `http://localhost:8080/attendances/${useId}/${year}/${month}/download`;
-};
-
-export const downloadMessageHistory = (useId: String, year: String, month: String) => {
-    window.location.href = `http://localhost:8080/message/${useId}/${year}/${month}/download`;
-};
 
 const instance = axios.create({
     baseURL: 'http://localhost:8080'
 })
 
-export const fetchAttendances = async (employeeId: string, channelName: string, year: string, month: string): Promise<Attendances> => {
-    const {data} = await instance.get<Attendances, AxiosResponse<Attendances>>(`/attendances/${employeeId}/${channelName}/${year}/${month}`)
+export const fetchAttendances = async (employeeId: string, channelName: string, year: string, month: string): Promise<DailyAttendances> => {
+    const {data} = await instance.get<DailyAttendances, AxiosResponse<DailyAttendances>>(`/attendances/${employeeId}/${channelName}/${year}/${month}`)
     return data
 }
 
