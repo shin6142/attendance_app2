@@ -3,6 +3,7 @@ import TextField from "@material-ui/core/TextField";
 import {Attendance, DailyAttendance} from "../types";
 
 export const TableRow = (props: TableRowProps) => {
+    const [kind, setKind] = useState<string>(props.attendance.kind)
     const [datetime, setDatetime] = useState<string>(props.attendance.datetime)
     useEffect(() => {
         setDatetime(props.attendance.datetime)
@@ -27,7 +28,11 @@ export const TableRow = (props: TableRowProps) => {
             <td>{props.attendance.employee_id}</td>
             <td>{props.attendance.employee_name}</td>
             <td>{props.date}</td>
-            <td className={props.kind}>{props.attendance.kind}</td>
+            <td>
+                <TextField className={props.kind}　value={kind} onChange={(event) => {
+                    setKind(event.target.value)
+                }}/>
+            </td>
             <td>
                 <TextField value={datetime} onChange={(event) => {
                     setDatetime(event.target.value)

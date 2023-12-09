@@ -68,20 +68,39 @@ class DailyAttendance(val employeeId: String, val date: LocalDate, val attendanc
         } else {
             val leaveRecords = breaks.list.filter { it.kind == AttendanceKind.LEAVE }
             val backRecords = breaks.list.filter { it.kind == AttendanceKind.BACK }
-            BreakRecords(
-                this.employeeId,
-                this.date,
-                leaveRecords.mapIndexed { idx, record ->
-                    val back = if (backRecords.count() > idx) {
-                        backRecords[idx]
-                    } else {
-                        Attendance.create(record.dateTime.plusHours(1), "add 1hour to leave time", AttendanceKind.LEAVE)
+            if(leaveRecords.count() == backRecords.count()){
+                BreakRecords(
+                    this.employeeId,
+                    this.date,
+                    leaveRecords.mapIndexed { idx, record ->
+                        BreakRecord.of(
+                            pair = (record to backRecords[idx])
+                        )
                     }
-                    BreakRecord.of(
-                        pair = (record to back)
-                    )
-                }
-            )
+                )
+            }else if(leaveRecords.count() > backRecords.count()){
+                BreakRecords(
+                    this.employeeId,
+                    this.date,
+                    leaveRecords.mapIndexed { idx, record ->
+                        val back = backRecords.getOrNull(idx) ?: Attendance.create(record.dateTime.plusHours(1), "add 1hour to leave time", AttendanceKind.BACK)
+                        BreakRecord.of(
+                            pair = (record to back)
+                        )
+                    }
+                )
+            }else{
+                BreakRecords(
+                    this.employeeId,
+                    this.date,
+                    backRecords.mapIndexed { idx, record ->
+                        val leave = leaveRecords.getOrNull(idx) ?: Attendance.create(record.dateTime.minusHours(1), "minus 1hour to leave time", AttendanceKind.LEAVE)
+                        BreakRecord.of(
+                            pair = (record to leave)
+                        )
+                    }
+                )
+            }
         }
     }
 }
@@ -123,18 +142,15 @@ class BreakRecord private constructor(val pair: Pair<Attendance, Attendance>) {
                         "defalt leave time",
                         AttendanceKind.LEAVE
                     ) to Attendance.create(
-                        LocalDateTime.of(date.year, date.month, date.dayOfMonth, 12, 0, 0),
+                        LocalDateTime.of(date.year, date.month, date.dayOfMonth, 13, 0, 0),
                         "defalt back time",
-                        AttendanceKind.LEAVE
+                        AttendanceKind.BACK
                     )
 
                 )
             }
         }
     }
-
-    fun leave(): Attendance = pair.first
-    fun second(): Attendance = pair.second
 }
 
 enum class AttendanceKind {

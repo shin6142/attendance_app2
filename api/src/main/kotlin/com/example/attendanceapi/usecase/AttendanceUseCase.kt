@@ -3,7 +3,6 @@ package com.example.attendanceapi.usecase
 import arrow.core.*
 import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
 import com.example.attendanceapi.domain.model.Attendance
-import com.example.attendanceapi.domain.model.AttendanceKind
 import com.example.attendanceapi.domain.model.AttendanceKind.*
 import com.example.attendanceapi.domain.model.DailyAttendance
 import org.springframework.stereotype.Component
@@ -22,7 +21,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
             }
 
     fun recordAttendances(input: RecordAttendancesInput): Either<RecordAttendancesError, RecordAttendancesOutput> =
-        input.list.map { dailyAttendanceInput ->
+        input.list.mapNotNull { dailyAttendanceInput ->
             dailyAttendanceInput.toDailyAttendance().getOrElse {
                 return RecordAttendancesError("RecordAttendancesError: toDailyAttendance: ${it.message}").left()
             }
@@ -40,21 +39,22 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         }
 
 
-    private fun DailyAttendanceInput.toDailyAttendance(): Either<ToDailyAttendanceError, DailyAttendance> {
+    private fun DailyAttendanceInput.toDailyAttendance(): Either<ToDailyAttendanceError, DailyAttendance?> {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val date = LocalDate.parse(this.date, dateFormatter)
-        return DailyAttendance.of(
+        return if(this.list.map { it.toAttendance() }.contains(null)) null.right()
+        else DailyAttendance.of(
             employeeId = this.employeeId,
             date = date,
-            attendances = this.list.map { attendanceInput ->
-                attendanceInput.toAttendance(date)
+            attendances = this.list.mapNotNull { attendanceInput ->
+                attendanceInput.toAttendance()
             }
         ).mapLeft {
             ToDailyAttendanceError(it.message)
         }
     }
 
-    private fun AttendanceInput.toAttendance(date: LocalDate): Attendance {
+    private fun AttendanceInput.toAttendance(): Attendance? {
         val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         return try {
             Attendance.create(
@@ -72,31 +72,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                 }
             )
         } catch (e: Exception) {
-            val defacultTimeStamp = when (this.kind) {
-                "START" -> LocalDateTime.of(date, LocalTime.of(9, 0, 0))
-                "LEAVE" -> LocalDateTime.of(date, LocalTime.of(12, 0, 0))
-                "BACK" -> LocalDateTime.of(date, LocalTime.of(13, 0, 0))
-                "END" -> LocalDateTime.of(date, LocalTime.of(18, 0, 0))
-                "UNKNOWN" -> LocalDateTime.of(date, LocalTime.of(0, 0, 0))
-                else -> {
-                    LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0, 0))
-                }
-            }
-
-            return Attendance.create(
-                defacultTimeStamp,
-                this.context,
-                when (this.kind) {
-                    "START" -> START
-                    "LEAVE" -> LEAVE
-                    "BACK" -> BACK
-                    "END" -> END
-                    "UNKNOWN" -> UNKNOWN
-                    else -> {
-                        UNKNOWN
-                    }
-                }
-            )
+            null
         }
     }
 
