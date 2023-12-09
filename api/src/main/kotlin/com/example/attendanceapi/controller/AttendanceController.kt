@@ -35,7 +35,7 @@ class AttendanceController(private val useCase: AttendanceUseCase) : AttendanceA
         ) @PathVariable(value = "month") month: String
     ): ResponseEntity<Attendances> =
         useCase.getMessages(AttendanceUseCase.AttendancesInput(employeeId, year, channelName, month)).fold(
-            { ResponseEntity(Attendances(emptyList()), HttpStatus.INTERNAL_SERVER_ERROR) },
+            { ResponseEntity(null, HttpStatus.INTERNAL_SERVER_ERROR) },
             { output ->
                 output.list.map {
                     DailyAttendances(
@@ -43,15 +43,13 @@ class AttendanceController(private val useCase: AttendanceUseCase) : AttendanceA
                         it.attendance.map { attendanceOutput ->
                             Attendance(
                                 attendanceOutput.attendanceId,
-                                attendanceOutput.employeeId,
-                                attendanceOutput.employeeName,
                                 attendanceOutput.datetime,
                                 attendanceOutput.context,
                                 attendanceOutput.kind
                             )
                         }
                     )
-                }.let { ResponseEntity(Attendances(it), HttpStatus.OK) }
+                }.let { ResponseEntity(Attendances(it, output.employeeId, output.employeeName), HttpStatus.OK) }
             }
         )
 

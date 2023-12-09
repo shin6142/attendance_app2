@@ -11,10 +11,6 @@ import org.springframework.stereotype.Component
 class EmployeeRepository(private val create: DSLContext) : EmployeeGateway {
     override fun fetch(id: Int): Employee {
         val record = create.selectFrom(EMPLOYEES).where(EMPLOYEES.ID.eq(id)).fetchAny() ?: EmployeesRecord(0, "")
-        return Employee(record.id ?: 0, record.name ?: "")
-    }
-
-    override fun add(employee: Employee) {
-        create.insertInto(EMPLOYEES, EMPLOYEES.ID, EMPLOYEES.NAME).values(employee.id, employee.name).execute()
+        return Employee(record.id.toString(), record.name ?: "")
     }
 }

@@ -8,9 +8,9 @@ import com.example.attendanceapi.domain.gateway.api.RetrieveAttendancesError
 import com.example.attendanceapi.domain.model.Attendance
 import com.example.attendanceapi.domain.model.AttendanceKind
 import com.example.attendanceapi.domain.model.DailyAttendance
+import com.example.attendanceapi.domain.model.Employee
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -23,7 +23,7 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
         channelName: String,
         year: String,
         month: String
-    ): Either<RetrieveAttendancesError, List<DailyAttendance>> =
+    ): Either<RetrieveAttendancesError, Pair<Employee, List<DailyAttendance>>> =
         slackApiDriver.fetchMessages(employeeId, year, channelName, month)
             .mapLeft { RetrieveAttendancesErrorImpl("", "") }
             .flatMap { slackApiResponse ->
@@ -37,6 +37,11 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
                     )
                 }.groupBy {it.dateTime.toLocalDate()}.map {
                     DailyAttendance(employeeId, it.key, it.value)
+                }.let { it ->
+                    val employee = slackApiResponse.messages.matches.getOrNull(0).let {
+                        Employee(employeeId, it?.username ?: "")
+                    }
+                    Pair(employee, it)
                 }.right()
             }
 

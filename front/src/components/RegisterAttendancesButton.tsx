@@ -7,13 +7,12 @@ export const RegisterAttendancesButton = (props: RegisterAttendancesButtonProps)
     const [disable, setDisable] = React.useState(false);
     return (
         <button disabled={disable} onClick={() => {
-            if (value !== "送信中です") {
-                setValue("送信中です")
-                setDisable(true)
-                postAttendances(props.postData, props.employeeId, props.year, props.month, props.token).finally(() =>
-                    setDisable(false)
-                )
-            }
+            setValue("登録中です")
+            setDisable(true)
+            postAttendances(props.postData, props.employeeId, props.year, props.month, props.token).finally(() => {
+                setDisable(false)
+                setValue("Freeeに勤怠を登録する")
+            })
         }}>{value}</button>
     )
 }

@@ -1,3 +1,3 @@
 package com.example.attendanceapi.domain.model
 
-class Employee (val id: Int, val name: String){}
+class Employee(val id: String, val name: String){}

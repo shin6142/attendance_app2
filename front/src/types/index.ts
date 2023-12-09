@@ -1,4 +1,6 @@
 export type DailyAttendances = {
+    employee_id: number,
+    employee_name: string,
     attendances: DailyAttendance[]
 }
 
@@ -9,8 +11,6 @@ export type DailyAttendance = {
 
 export type Attendance = {
     attendance_id: string,
-    employee_id: number,
-    employee_name: string,
     datetime: string,
     context: string,
     kind: string,

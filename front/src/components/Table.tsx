@@ -57,11 +57,12 @@ export const Table = () => {
             <button onClick={authenticate}>認証</button>
             <RegisterAttendancesButton postData={postData} year={year} month={month} employeeId={freeeEmployeeId}
                                        token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
+            <div>
+                <p>You are: {attendances?.employee_id}</p>
+            </div>
             <table className="table" id={"attendances_table"}>
                 <thead>
                 <tr>
-                    <th>従業員ID</th>
-                    <th>従業員名</th>
                     <th>勤務日</th>
                     <th>打刻種別</th>
                     <th>打刻時間</th>

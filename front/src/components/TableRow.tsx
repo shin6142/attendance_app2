@@ -25,8 +25,6 @@ export const TableRow = (props: TableRowProps) => {
 
     return (
         <tr>
-            <td>{props.attendance.employee_id}</td>
-            <td>{props.attendance.employee_name}</td>
             <td>{props.date}</td>
             <td>
                 <TextField className={props.kind}　value={kind} onChange={(event) => {

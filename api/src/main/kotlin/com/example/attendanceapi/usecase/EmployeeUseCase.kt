@@ -8,11 +8,6 @@ import org.springframework.stereotype.Component
 class EmployeeUseCase(private val employeeGateway: EmployeeGateway) {
     fun getById(id: Int): EmployeeOutput = employeeGateway.fetch(id).let { employee -> EmployeeOutput(employee.id, employee.name) }
 
-    fun create(input: EmployeeInput): EmployeeOutput{
-        employeeGateway.add(Employee(input.id, input.name))
-        return EmployeeOutput(input.id, input.name)
-    }
-
-    data class EmployeeOutput(val id: Int, val name: String)
-    data class EmployeeInput(val id: Int, val name: String)
+    data class EmployeeOutput(val id: String, val name: String)
+    data class EmployeeInput(val id: String, val name: String)
 }

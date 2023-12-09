@@ -15,10 +15,12 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     fun getMessages(input: AttendancesInput): Either<GetMonthlyByEmployeeIdError, AttendancesOutput> =
         attendanceGateway.retrieveAttendances(input.employeeId, input.channelName, input.year, input.month)
             .mapLeft { GetMonthlyByEmployeeIdError(input, "") }
-            .flatMap { dailyAttendances ->
-                dailyAttendances.sortedBy { it.date }.map { dailyAttendance ->
+            .flatMap { employeeAndDailyAttendances ->
+                employeeAndDailyAttendances.second.sortedBy { it.date }.map { dailyAttendance ->
                     dailyAttendance.toDailyAttendanceOutPut()
-                }.let { AttendancesOutput(it) }.right()
+                }.let {
+                    AttendancesOutput(employeeAndDailyAttendances.first.id, employeeAndDailyAttendances.first.name, it)
+                }.right()
             }
 
     fun recordAttendances(input: RecordAttendancesInput): Either<RecordAttendancesError, RecordAttendancesOutput> =
@@ -43,7 +45,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     private fun DailyAttendanceInput.toDailyAttendance(): Either<ToDailyAttendanceError, DailyAttendance?> {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val date = LocalDate.parse(this.date, dateFormatter)
-        return if(this.list.map { it.toAttendance() }.contains(null)) null.right()
+        return if (this.list.map { it.toAttendance() }.contains(null)) null.right()
         else DailyAttendance.of(
             employeeId = this.employeeId,
             date = date,
@@ -81,8 +83,23 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
         val attendances = this.createBreakRecords().records.flatMap { it.pair.toList() }.map {
             it.toAttendanceOutput()
         }.toMutableList()
-        attendances.add(0, this.start()?.toAttendanceOutput() ?: AttendanceOutput(UUID.randomUUID().toString(),"", "", "", "", "START"))
-        attendances.add(this.end()?.toAttendanceOutput() ?: AttendanceOutput(UUID.randomUUID().toString(),"", "", "", "", "END"))
+        attendances.add(
+            0,
+            this.start()?.toAttendanceOutput() ?: AttendanceOutput(
+                UUID.randomUUID().toString(),
+                "",
+                "",
+                "START"
+            )
+        )
+        attendances.add(
+            this.end()?.toAttendanceOutput() ?: AttendanceOutput(
+                UUID.randomUUID().toString(),
+                "",
+                "",
+                "END"
+            )
+        )
 
         return DailyAttendanceOutPut(
             date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
@@ -93,8 +110,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
     private fun Attendance.toAttendanceOutput(): AttendanceOutput =
         AttendanceOutput(
             this.attendanceId.toString(),
-            "",
-            "",
             this.dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
             this.context,
             this.kind.toString()
@@ -103,7 +118,11 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
 
     data class AttendancesInput(val employeeId: String, val channelName: String, val year: String, val month: String)
 
-    data class AttendancesOutput(val list: List<DailyAttendanceOutPut>)
+    data class AttendancesOutput(
+        val employeeId: String,
+        val employeeName: String,
+        val list: List<DailyAttendanceOutPut>
+    )
 
     data class DailyAttendanceOutPut(val date: String, val attendance: List<AttendanceOutput>)
     data class RecordAttendancesInput(
@@ -133,8 +152,6 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
 
     data class AttendanceOutput(
         val attendanceId: String,
-        val employeeId: String,
-        val employeeName: String,
         val datetime: String,
         val context: String,
         val kind: String

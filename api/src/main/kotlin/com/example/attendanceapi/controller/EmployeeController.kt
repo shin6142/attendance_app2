@@ -20,9 +20,4 @@ class EmployeeController(private val useCase: EmployeeUseCase) : EmployeeApi {
         val output = useCase.getById(id)
         return ResponseEntity(Employee(output.id, output.name), HttpStatus.OK)
     }
-
-    override fun create(employee: Employee): ResponseEntity<Employee> {
-        val output = useCase.create(EmployeeUseCase.EmployeeInput(employee.id, employee.name))
-        return ResponseEntity(Employee(output.id, output.name), HttpStatus.CREATED)
-    }
 }

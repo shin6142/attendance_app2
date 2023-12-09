@@ -194,8 +194,8 @@ components:
       properties:
         id:
           description: employee id
-          example: 1
-          type: integer
+          example: 60917899-191c-43eb-ad64-c54636e9760b
+          type: string
         name:
           description: employee name
           example: Ben White
@@ -205,7 +205,7 @@ components:
         - id
         - name
     attendances:
-      description: bulk of daily attendance
+      description: bulk of daily daily attendances
       type: object
       properties:
         attendances:
@@ -213,8 +213,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/dailyAttendances'
+        employee_id:
+          type: string
+          example: U02FFCC308G
+        employee_name:
+          type: string
+          example: Ben White
       required:
         - attendances
+        - employee_id
+        - employee_name
     attendance:
       description: attendance
       type: object
@@ -222,12 +230,6 @@ components:
         attendance_id:
           type: string
           example: e386e6b2-61d8-4fbe-8b29-10f3289df147
-        employee_id:
-          type: string
-          example: U02FFCC308G
-        employee_name:
-          type: string
-          example: Ben White
         datetime:
           type: string
           example: 2013-02-01T12:52:34
@@ -239,13 +241,11 @@ components:
           example: START
       required:
         - attendance_id
-        - employee_id
-        - employee_name
         - datetime
         - context
         - kind
     dailyAttendances:
-      description: attendances on a day
+      description: attendances in a day
       type: object
       properties:
         date:
