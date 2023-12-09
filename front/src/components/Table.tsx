@@ -58,7 +58,7 @@ export const Table = () => {
             <RegisterAttendancesButton postData={postData} year={year} month={month} employeeId={freeeEmployeeId}
                                        token={getTokenFromQueryParameter()}></RegisterAttendancesButton>
             <div>
-                <p>You are: {attendances?.employee_id}</p>
+                <p>You are: {attendances?.employee_name}</p>
             </div>
             <table className="table" id={"attendances_table"}>
                 <thead>
