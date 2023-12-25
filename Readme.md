@@ -13,6 +13,12 @@ This application automates recording monthly attendances for Slack and Freee Use
 - openapi-generator
 - Docker
 
+
+![Architecture](/image/architecture.png)
+
+![Authentication](/image/authentication.png)
+
+
 ## set up
 ### create application.properties
 ```
