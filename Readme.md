@@ -1,6 +1,6 @@
 # attendance management application
 ## Description
-This application automates recording monthly attendances for Slack and Freee User.
+This application automates recording monthly attendances for Slack and [Freee](https://www.freee.co.jp/hr/) User.
 
 ## Stack
 - Kotlin
@@ -12,12 +12,6 @@ This application automates recording monthly attendances for Slack and Freee Use
 - liquibase
 - openapi-generator
 - Docker
-
-
-![Architecture](/image/architecture.png)
-
-![Authentication](/image/authentication.png)
-
 
 ## set up
 ### create application.properties
