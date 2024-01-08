@@ -3,31 +3,18 @@ import TextField from "@material-ui/core/TextField";
 import {Attendance, DailyAttendance} from "../../types";
 
 export const TableRow = (props: TableRowProps) => {
-    const [kind, setKind] = useState<string>(props.attendance.kind)
-    const [datetime, setDatetime] = useState<string>(props.attendance.datetime)
-    useEffect(() => {
-        setDatetime(props.attendance.datetime)
-    }, [props.parentState])
-
-    useEffect(() => {
-        const updated = props.parentState.map((dailyAttendance) => {
-            if (dailyAttendance.date == props.date) {
-                dailyAttendance.attendances.map((attendance) => {
-                    if (attendance.attendance_id == props.attendance.attendance_id) {
-                        attendance.datetime = datetime
-                    }
-                })
-            }
-            return dailyAttendance
-        })
-        props.setState(updated)
-    }, [datetime]);
+    const {
+        kind,
+        setKind,
+        datetime,
+        setDatetime
+    } = useAttendance(props)
 
     return (
         <tr>
             <td>{props.date}</td>
             <td>
-                <TextField className={props.kind}　value={kind} onChange={(event) => {
+                <TextField className={props.attendance.kind} value={kind} onChange={(event) => {
                     setKind(event.target.value)
                 }}/>
             </td>
@@ -45,6 +32,33 @@ type TableRowProps = {
     date: string
     attendance: Attendance
     parentState: DailyAttendance[]
-    kind: string
-    setState: (dailyAttendances: DailyAttendance[]) => void
+}
+
+const useAttendance = (props: TableRowProps) => {
+    const [kind, setKind] = useState<string>(props.attendance.kind)
+    const [datetime, setDatetime] = useState<string>(props.attendance.datetime)
+    useEffect(() => {
+        setKind(props.attendance.kind)
+        setDatetime(props.attendance.datetime)
+    }, [props.parentState])
+
+    useEffect(() => {
+        props.parentState.map((dailyAttendance) => {
+            if (dailyAttendance.date == props.date) {
+                dailyAttendance.attendances.map((attendance) => {
+                    if (attendance.attendance_id == props.attendance.attendance_id) {
+                        attendance.datetime = datetime
+                    }
+                })
+            }
+        })
+        console.log(props.parentState)
+    }, [kind, datetime]);
+
+    return {
+        kind,
+        setKind,
+        datetime,
+        setDatetime
+    }
 }

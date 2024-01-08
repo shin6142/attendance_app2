@@ -1,22 +1,13 @@
 import "../scss/list.scss"
 import {TableRow} from "./TableRow.tsx";
-import {useAttendances} from "./hooks/useAttendances.ts";
-// import {useEffect, useState} from "react";
+import {DailyAttendances} from "../../types";
+import {useState} from "react";
+import {AxiosResponse} from "axios";
+import {instance} from "../../query";
+import {useQuery} from "react-query";
+
 export const AttendancesTable = () => {
-    // const [freeeEmployeeId, setFreeeEmployeeId] = useState("")
-    // const [postData, setPostData] = useState<DailyAttendance[]>([]);
-
     const {dailyAttendances,date, updateYearMonth} = useAttendances()
-
-    // useEffect(() => {
-    //     setPostData(dailyAttendances?.attendances || [])
-    // }, [dailyAttendances]);
-
-    // useEffect(() => {
-    //     getFreeeLoginUser(getTokenFromQueryParameter() ?? "").then(result => {
-    //         setFreeeEmployeeId(result.id.toString())
-    //     })
-    // }, []);
 
     return (
         <div>
@@ -29,9 +20,6 @@ export const AttendancesTable = () => {
                 updateYearMonth(date.getFullYear(), date.getMonth() + 1)
             }}>次月
             </button>
-            {/*<button onClick={authenticate}>認証</button>*/}
-            {/*<RegisterAttendancesButton postData={postData} year={yearMonth.year.toString()} month={yearMonth.month.toString()} employeeId={freeeEmployeeId}*/}
-            {/*                           token={getTokenFromQueryParameter()}></RegisterAttendancesButton>*/}
             <div>
                 <p>You are: {dailyAttendances?.employee_name}</p>
             </div>
@@ -49,11 +37,9 @@ export const AttendancesTable = () => {
                 {dailyAttendances?.attendances.map(dailyAttendance =>
                     dailyAttendance.attendances.map((attendance, i) =>
                         <TableRow
-                            kind={attendance.kind}
                             key={i}
                             date={dailyAttendance.date}
                             attendance={attendance}
-                            setState={() => {}}
                             parentState={dailyAttendances?.attendances ?? []}
                         ></TableRow>
                     )
@@ -62,4 +48,38 @@ export const AttendancesTable = () => {
             </table>
         </div>
     )
+}
+
+
+const useAttendances = () => {
+    const [date, setDate] = useState<Date>(new Date());
+
+    const updateYearMonth = (year: number, month: number) => {
+        setDate(new Date(year, month))
+    }
+
+    const fallback: DailyAttendances = {
+        employee_id: 0,
+        employee_name: "",
+        attendances: []
+    }
+
+    const getDailyAttendances = async (employeeId: string, channelName: string, year: string, month: string): Promise<DailyAttendances> => {
+        const {data} = await instance.get<DailyAttendances, AxiosResponse<DailyAttendances>>(`/attendances/${employeeId}/${channelName}/${year}/${month}`)
+        return data
+    }
+
+    // for useQuery and prefetchQuery
+    const commonOptions = {
+        staleTime: 0,
+        gcTime: 30000, // 5 minutes
+    };
+
+    const {data: dailyAttendances = fallback} = useQuery({
+        queryKey: ["attendances", date.getFullYear(), date.getMonth() + 1],
+        queryFn: () => getDailyAttendances("U02FFCC308G", "grp-dev-勤怠", date.getFullYear().toString(), (date.getMonth() + 1).toString()),
+        ...commonOptions
+    });
+
+    return {dailyAttendances, date, updateYearMonth}
 }
