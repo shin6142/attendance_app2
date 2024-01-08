@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import TextField from "@material-ui/core/TextField";
-import {Attendance, DailyAttendance} from "../types";
+import {Attendance, DailyAttendance} from "../../types";
 
 export const TableRow = (props: TableRowProps) => {
     const [kind, setKind] = useState<string>(props.attendance.kind)

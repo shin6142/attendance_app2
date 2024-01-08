@@ -1,7 +1,7 @@
 import {DailyAttendances, DailyAttendance, FreeLoginUser} from "../types";
 import axios, {AxiosResponse} from "axios";
 
-const instance = axios.create({
+export const instance = axios.create({
     baseURL: 'http://localhost:8080'
 })
 
