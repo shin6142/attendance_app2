@@ -1,6 +1,6 @@
 # attendance management application
 ## Description
-This application automates recording monthly attendances for Slack and [Freee](https://www.freee.co.jp/hr/) User.
+This application automates recording monthly attendances for [Slack](https://slack.com/) and [Freee](https://www.freee.co.jp/hr/) User.
 
 
 ![architecture](image/architecture.png)
