@@ -19,7 +19,7 @@ class AttendanceUseCase(val attendanceGateway: AttendanceGateway) {
                 employeeAndDailyAttendances.second.sortedBy { it.date }.map { dailyAttendance ->
                     dailyAttendance.toDailyAttendanceOutPut()
                 }.let {
-                    AttendancesOutput(employeeAndDailyAttendances.first.id, employeeAndDailyAttendances.first.name, it)
+                    AttendancesOutput(employeeAndDailyAttendances.first.employeeId.toString(), employeeAndDailyAttendances.first.name.name, it)
                 }.right()
             }
 

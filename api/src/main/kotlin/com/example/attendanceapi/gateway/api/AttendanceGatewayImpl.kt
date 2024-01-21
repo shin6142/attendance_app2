@@ -5,14 +5,12 @@ import com.example.attendanceapi.domain.gateway.api.AttendanceGateway
 import com.example.attendanceapi.domain.gateway.api.RecordAttendancesError
 import com.example.attendanceapi.domain.gateway.api.RecordAttendancesResult
 import com.example.attendanceapi.domain.gateway.api.RetrieveAttendancesError
-import com.example.attendanceapi.domain.model.Attendance
-import com.example.attendanceapi.domain.model.AttendanceKind
-import com.example.attendanceapi.domain.model.DailyAttendance
-import com.example.attendanceapi.domain.model.Employee
+import com.example.attendanceapi.domain.model.*
 import org.springframework.stereotype.Component
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 
 @Component
@@ -39,7 +37,7 @@ class AttendanceGatewayImpl(private val slackApiDriver: SlackApiDriver, private 
                     DailyAttendance(employeeId, it.key, it.value)
                 }.let { it ->
                     val employee = slackApiResponse.messages.matches.getOrNull(0).let {
-                        Employee(employeeId, it?.username ?: "")
+                        Employee(UUID.randomUUID(), EmployeeName(it?.username ?: ""))
                     }
                     Pair(employee, it)
                 }.right()

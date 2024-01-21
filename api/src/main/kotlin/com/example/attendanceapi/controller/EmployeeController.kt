@@ -8,16 +8,17 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 class EmployeeController(private val useCase: EmployeeUseCase) : EmployeeApi {
-    override fun get(
-        @Parameter(
-            description = "target employee's id",
-            required = true
-        ) @PathVariable(value = "id") id: Int
-    ): ResponseEntity<Employee> {
-        val output = useCase.getById(id)
-        return ResponseEntity(Employee(output.id, output.name), HttpStatus.OK)
-    }
+    override fun get(id: String): ResponseEntity<Employee> =
+        useCase.getById(UUID.fromString(id)).fold(
+            {
+                ResponseEntity(null, HttpStatus.INTERNAL_SERVER_ERROR)
+            },
+            { output ->
+                ResponseEntity(Employee(output.id, output.name), HttpStatus.OK)
+            }
+        )
 }

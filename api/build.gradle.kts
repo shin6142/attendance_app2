@@ -114,8 +114,13 @@ dependencies {
      * kotest
      */
     val kotestVersion = "5.7.2"
-    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.kotest:kotest-runner-junit5:${kotestVersion}")
+    testImplementation("io.kotest:kotest-assertions-core:${kotestVersion}")
+    testImplementation("io.kotest:kotest-property:${kotestVersion}")
+    val kotestArrowVersion = "1.4.0"
+    testImplementation("io.kotest.extensions:kotest-assertions-arrow:${kotestArrowVersion}")
+    testImplementation("io.kotest.extensions:kotest-assertions-arrow-fx-coroutines:${kotestArrowVersion}")
+    testImplementation("io.mockk:mockk:1.13.8")
     /**
      * Arrow kt
      */
