@@ -5,10 +5,14 @@ import {useState} from "react";
 import {AxiosResponse} from "axios";
 import {instance} from "../../query";
 import {useQuery} from "react-query";
+import {RegisterAttendancesButton} from "./RegisterAttendancesButton.tsx";
+import {useLocation} from "react-router-dom";
 
 export const AttendancesTable = () => {
     const {dailyAttendances,date, updateYearMonth} = useAttendances()
-
+    const search = useLocation().search;
+    const query = new URLSearchParams(search);
+    const token = query.get('token')
     return (
         <div>
             <h1>{date.getFullYear()}/{date.getMonth() + 1}</h1>
@@ -23,7 +27,7 @@ export const AttendancesTable = () => {
             <div>
                 <p>You are: {dailyAttendances?.employee_name}</p>
             </div>
-
+            <RegisterAttendancesButton postData={dailyAttendances.attendances} year={date.getFullYear().toString()} month={(date.getMonth() + 1).toString()} token={token} />
             <table className="table" id={"attendances"}>
                 <thead>
                 <tr>
@@ -78,7 +82,8 @@ const useAttendances = () => {
     const {data: dailyAttendances = fallback} = useQuery({
         queryKey: ["attendances", date.getFullYear(), date.getMonth() + 1],
         queryFn: () => getDailyAttendances("U02FFCC308G", "grp-dev-勤怠", date.getFullYear().toString(), (date.getMonth() + 1).toString()),
-        ...commonOptions
+        ...commonOptions,
+        enabled: false
     });
 
     return {dailyAttendances, date, updateYearMonth}

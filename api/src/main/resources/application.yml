@@ -1,0 +1,70 @@
+# 共通
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_MASTER_HOST:db}:${DB_MASTER_PORT:5432}/${DB_NAME:db}
+    username: ${DB_USER:root}
+    password: ${DB_PASS:root}
+    driver-class-name: org.postgresql.Driver
+  profiles:
+    default: localhost
+  liquibase:
+    change-log: classpath:liquibase/changelog.xml
+frontend:
+  url: ${FRONT_URL:http://localhost:5173}
+slack:
+  token: xoxp-28775983939-2525420102288-6032152067968-76d4f4ea0bec5ba20ebd450e73dc7d17
+freee:
+  clientId: b520f9fbdc58ef571fb2caaa92f78270becda1331b53b5cd6dd59712e4aa7259
+  clientSecret: 646cff39a9610595072e64df65adcea56c44b31db600341b81756114608f0020
+
+---
+######################
+# Profile: localhost #
+######################
+
+spring:
+  config:
+    activate:
+      on-profile: localhost
+  devtools:
+    restart:
+      enabled: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.jooq.tools.LoggerListener: DEBUG
+    org.springframework.security: DEBUG
+    root: INFO
+
+custom:
+  env: localhost
+  allowed-origins: http://localhost:5173,
+
+---
+
+###################
+# Profile: remote #
+###################
+
+spring:
+  config:
+    activate:
+      on-profile: remote
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+  config: classpath:log4j2-remote.xml
+
+custom:
+  env: ${ENV}
+  allowed-origins: ${ALLOWED_ORIGINS}
+
+---

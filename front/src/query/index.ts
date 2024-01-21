@@ -2,7 +2,7 @@ import {DailyAttendances, DailyAttendance, FreeLoginUser} from "../types";
 import axios, {AxiosResponse} from "axios";
 
 export const instance = axios.create({
-    baseURL: 'http://localhost:8080'
+    baseURL: import.meta.env.VITE_MANAGER_API_URL ?? 'http://localhost:8080'
 })
 
 export const fetchAttendances = async (employeeId: string, channelName: string, year: string, month: string): Promise<DailyAttendances> => {
@@ -19,7 +19,8 @@ export const postAttendances = async (attendances: DailyAttendance[], employeeId
 }
 
 export const authenticate = () => {
-    window.location.href = "https://accounts.secure.freee.co.jp/public_api/select_companies?client_id=b520f9fbdc58ef571fb2caaa92f78270becda1331b53b5cd6dd59712e4aa7259&prompt=select_company&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Ffreee%2Fauthenticate%2Fcallback&response_type=code";
+    const clientId = import.meta.env.VITE_FREEE_CLIENT_ID
+    window.location.href = `https://accounts.secure.freee.co.jp/public_api/select_companies?client_id=${clientId}&prompt=select_company&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Ffreee%2Fauthenticate%2Fcallback&response_type=code`;
 };
 
 export const getTokenFromQueryParameter = (): string | null => {

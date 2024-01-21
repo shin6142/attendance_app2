@@ -1,7 +1,6 @@
 package com.example.attendanceapi.usecase
 
 import com.example.attendanceapi.domain.gateway.database.EmployeeGateway
-import com.example.attendanceapi.domain.model.Employee
 import org.springframework.stereotype.Component
 
 @Component

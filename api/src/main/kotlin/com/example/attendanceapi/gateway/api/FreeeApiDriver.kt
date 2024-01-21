@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.raise.either
 import arrow.core.right
+import com.example.attendanceapi.environment.ConfigReader
 import jdk.jshell.Snippet.Status
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -23,7 +24,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 @Component
-class FreeeApiDriver(@Autowired private val env: Environment) {
+class FreeeApiDriver(@Autowired private val env: Environment, @Autowired private val configReader: ConfigReader) {
 
     fun getToken(code: String): Either<FreeeAuthenticationError, FreeeAuthenticationTokens> {
         val clientId = env.getProperty("freee.clientId")

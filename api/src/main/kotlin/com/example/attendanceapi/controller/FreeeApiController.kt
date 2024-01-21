@@ -1,7 +1,6 @@
 package com.example.attendanceapi.controller
 
 import com.example.attendance_api.openapi.generated.controller.FreeeApi
-import com.example.attendance_api.openapi.generated.model.FreeeAuthenticationCode
 import com.example.attendance_api.openapi.generated.model.FreeeLoginUser
 import com.example.attendanceapi.gateway.api.FreeeApiDriver
 import io.swagger.v3.oas.annotations.Parameter
@@ -27,7 +26,7 @@ class FreeeApiController(val freeeApiDriver: FreeeApiDriver) : FreeeApi {
             { ResponseEntity(HttpStatus.UNAUTHORIZED) },
             { tokens ->
                 ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("http://localhost:5173?token=${tokens.access_token}"))
+                    .location(URI.create("http://localhost:5173/attendances/?token=${tokens.access_token}"))
                     .build()
             }
         )
